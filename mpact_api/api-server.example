@@ -9,4 +9,11 @@ BASE_DIR=$HOME/src/other/telegram-bot-api
 export TELEGRAM_API_ID=1234567
 export TELEGRAM_API_HASH=c0ffeecc37ca4ff6ccdf2e68397cdfb7
 
-$BASE_DIR/bin/telegram-bot-api --local
+if [ -z "$*" ] ; then
+    # Serve local requests by default
+    ARGS=--local
+else
+    ARGS="$*"
+fi
+
+$BASE_DIR/bin/telegram-bot-api $ARGS

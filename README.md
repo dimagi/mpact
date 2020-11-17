@@ -74,3 +74,11 @@ Set `BASE_DIR` to the **telegram-bot-api** installation directory.
 
 Set `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` to the values for your
 app. You can find the values at <https://my.telegram.org/apps>.
+
+Start the API server on <http://localhost:8081> with
+
+    $ ./api-server
+
+Or display usage and options with
+
+    $ ./api-server --help
