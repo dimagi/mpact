@@ -54,3 +54,23 @@ You can generate a secret key with
 Now you can run a development server with
 
     $ ./manage-dev runserver
+
+## Running a local Telegram Bot API server
+
+Using a local Telegram Bot API server allows you to develop and test a
+webhook on localhost, using any port, and without SSL.
+
+Refer to the [telegram-bot-api](https://github.com/tdlib/telegram-bot-api)
+repository on GitHub for more details and installation instructions.
+
+To make it easy to run, copy **api-server.example** to **api-server**
+and set the environment variables.
+
+    $ cp api-server.example api-server
+
+Open **api-server** in an editor.
+
+Set `BASE_DIR` to the **telegram-bot-api** installation directory.
+
+Set `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` to the values for your
+app. You can find the values at <https://my.telegram.org/apps>.
