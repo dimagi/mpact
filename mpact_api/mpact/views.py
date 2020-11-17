@@ -5,21 +5,7 @@ from rest_framework.views import APIView
 from .constants import MESSAGE, NEW_CHAT_PARTICIPANT, NEW_CHAT_TITLE, OK, TEXT
 from .logger import logger
 from .services import anonymize
-from .management.commands.set_webhook import set_webhook
 from .telegramevents import TelegramEvents
-
-
-class Webhook(APIView):
-    """
-    This is only called once for the webhook setup.
-    """
-
-    def get(self, request):
-        success = set_webhook()
-        if success:
-            return Response("webhook setup ok")
-        else:
-            return Response("webhook setup failed")
 
 
 class ListenMessages(APIView):
