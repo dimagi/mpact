@@ -1,23 +1,11 @@
-import os
-
-from django.urls import reverse
-
 from telegram.ext import Updater
 
-from .constants import BOT_TOKEN, ID, MESSAGE, REPLACE
+from .constants import BOT_TOKEN, ID, REPLACE
 from .models import UserChat, UserData
 from .serializers import ChatDataSerializer, UserDataSerializer
 
 updater = Updater(BOT_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
-
-
-def set_webhook() -> bool:
-    # TODO: we can move this to config file or keep this as a seperate script.
-    local_url = 'http://localhost:8000' + reverse("listen_msg")
-    webhook_url = os.environ.get('WEBHOOK_URL') or local_url
-    success = updater.bot.setWebhook(webhook_url, allowed_updates=[MESSAGE])
-    return success
 
 
 def save_chatdata(chat_data, chat_instance=None):
