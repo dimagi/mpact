@@ -5,4 +5,9 @@ export TOKEN=1234567890:oMM9WNHx_7RlUYstgg36hEAeqg0QoPAKHsw
 export BOT_USERNAME=rodney_copperbot
 export ALLOWED_HOSTS='127.0.0.1 localhost'
 
+if [ -f api-server ] ; then
+    # If api-server script is created, assume we're running a local API
+    export API_BASE_URL=http://localhost:8081/bot
+fi
+
 python3 manage.py $*

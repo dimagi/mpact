@@ -1,11 +1,11 @@
+from django.conf import settings
 from telegram.ext import Updater
 
 from .constants import BOT_TOKEN, ID, REPLACE
 from .models import UserChat, UserData
 from .serializers import ChatDataSerializer, UserDataSerializer
 
-updater = Updater(BOT_TOKEN, use_context=True)
-dispatcher = updater.dispatcher
+updater = Updater(BOT_TOKEN, base_url=settings.API_BASE_URL, use_context=True)
 
 
 def save_chatdata(chat_data, chat_instance=None):

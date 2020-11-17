@@ -22,6 +22,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ["SECRET_KEY"]
 
+# API_BASE_URL defaults to telegram.Bot.base_url default value
+API_BASE_URL = os.environ.get("API_BASE_URL") or "https://api.telegram.org/bot"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
