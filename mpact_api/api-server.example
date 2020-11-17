@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Starts a Telegram Bot API server that allows webhooks on localhost at
+# any port without SSL.
+#
+# More info: https://github.com/tdlib/telegram-bot-api
+BASE_DIR=$HOME/src/other/telegram-bot-api
+
+export TELEGRAM_API_ID=1234567
+export TELEGRAM_API_HASH=c0ffeecc37ca4ff6ccdf2e68397cdfb7
+
+$BASE_DIR/bin/telegram-bot-api --local

@@ -4,3 +4,4 @@ __pycache__
 .vscode
 venv/
 mpact_api/manage-dev
+mpact_api/api-server
