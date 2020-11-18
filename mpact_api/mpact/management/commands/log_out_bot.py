@@ -15,7 +15,8 @@ from typing import Tuple
 import requests
 from django.core.management import BaseCommand
 
-API_BASE_URL = 'https://api.telegram.org'
+# Default value of telegram.Bot.base_url
+API_BASE_URL = 'https://api.telegram.org/bot'
 
 
 class Command(BaseCommand):
@@ -28,6 +29,6 @@ class Command(BaseCommand):
 
 
 def log_out(token: str) -> Tuple[bool, str]:
-    url = f'{API_BASE_URL}/bot{token}/logOut'
+    url = f'{API_BASE_URL}{token}/logOut'
     response = requests.get(url)
     return (200 >= response.status_code < 300, response.text)
