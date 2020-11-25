@@ -5,8 +5,6 @@ from rest_framework.views import APIView
 
 from .services import get_dialogs, login, logout, send_msg
 
-loop = asyncio.get_event_loop()
-
 
 class Login(APIView):
     """
@@ -15,8 +13,8 @@ class Login(APIView):
 
     def post(self, request):
         # request.data will contain phone or code.
-        data = request.data
-        return HttpResponse(loop.run_until_complete(login(data)))
+        loop = get_event_loop()
+        return HttpResponse(loop.run_until_complete(login(request.data)))
 
 
 class Logout(APIView):
@@ -25,6 +23,7 @@ class Logout(APIView):
     """
 
     def get(self, request):
+        loop = get_event_loop()
         return HttpResponse(loop.run_until_complete(logout()))
 
 
@@ -34,8 +33,9 @@ class SendMessage(APIView):
     """
 
     def post(self, request):
-        data = request.data
-        return HttpResponse(loop.run_until_complete(send_msg(data)))
+        peer_id = -488152794  # TODO: Is this a constant?
+        future = send_msg(peer_id, request.data)
+        return HttpResponse(get_event_loop().run_until_complete(future))
 
 
 class Dialog(APIView):
@@ -44,4 +44,14 @@ class Dialog(APIView):
     """
 
     def get(self, request):
+        loop = get_event_loop()
         return HttpResponse(loop.run_until_complete(get_dialogs()))
+
+
+def get_event_loop():
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop
