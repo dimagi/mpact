@@ -20,13 +20,13 @@ A Telegram-based expert support system
 ## Set Environment Variables
 
     $ export SECRET_KEY=<Django Secret Key>
-    $ export TOKEN=<Telegram Bot Token>
-    $ export BOT_USERNAME=<Telegram Bot Username>
+    $ export BOT_TOKEN=<Telegram Bot Token>
+    $ export TELEGRAM_API_ID=<Telegram API ID>
+    $ export TELEGRAM_API_HASH=<Telegram API Hash>
     $ export ALLOWED_HOSTS='127.0.0.1 localhost'
 
 ## Run
 
-    $ cd mpact_api
     $ ./manage.py runserver
 
 ## There is a script for that
@@ -41,7 +41,7 @@ environment variables in it:
     $ cp manage-dev.example manage-dev
 
 Open **manage-dev** in your favorite editor, and set the values of
-`SECRET_KEY`, `TOKEN` and `BOT_USERNAME`.
+`SECRET_KEY`, `BOT_TOKEN`, `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`.
 
 You can generate a secret key with
 
@@ -54,3 +54,7 @@ You can generate a secret key with
 Now you can run a development server with
 
     $ ./manage-dev runserver
+
+Create a super user with the below command
+
+    $ ./manage-dev createsuperuser

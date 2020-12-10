@@ -57,7 +57,7 @@ ROOT_URLCONF = "telegram_bot.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "static")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -110,14 +110,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
-if os.environ.get('DEPLOY_ENV') == 'dev':
+if os.environ.get("DEPLOY_ENV") == "dev":
     DEBUG = True
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600)
-    }
+    DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
 
 else:
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-    }
+    DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
