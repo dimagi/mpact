@@ -24,10 +24,22 @@ A Telegram-based expert support system
     $ export TELEGRAM_API_ID=<Telegram API ID>
     $ export TELEGRAM_API_HASH=<Telegram API Hash>
     $ export ALLOWED_HOSTS='127.0.0.1 localhost'
+    $ export SECURED_URL_SECRET_KEY="1234"
+    $ export SECURITY_PASSWORD_SALT="1234"
 
 ## Run
 
-    $ ./manage.py runserver
+1. Redis server
+
+        $ redis-server
+
+2. Celery
+
+        $  celery -A telegram_bot beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+3. Django server
+
+        $ ./manage.py runserver
 
 ## There is a script for that
 
@@ -41,7 +53,7 @@ environment variables in it:
     $ cp manage-dev.example manage-dev
 
 Open **manage-dev** in your favorite editor, and set the values of
-`SECRET_KEY`, `BOT_TOKEN`, `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`.
+`SECRET_KEY`, `BOT_TOKEN`, `TELEGRAM_API_ID`,  `TELEGRAM_API_HASH`, `SECURED_URL_SECRET_KEY` and `SECURITY_PASSWORD_SALT`
 
 You can generate a secret key with
 
@@ -53,6 +65,10 @@ You can generate a secret key with
 
 Now you can run a development server with
 
+    $ npm install
+    $ npm run dev
+    $ redis-server
+    $ celery -A telegram_bot beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
     $ ./manage-dev runserver
 
 Create a super user with the below command

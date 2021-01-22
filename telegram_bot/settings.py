@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -120,3 +121,10 @@ if os.environ.get("DEPLOY_ENV") == "dev":
 
 else:
     DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
+
+from alchemysession import AlchemySessionContainer
+
+container = AlchemySessionContainer(os.environ["DATABASE_URL"])
+
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_BEAT_SCHEDULE = {}

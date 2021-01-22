@@ -1,0 +1,48 @@
+:root {
+    --telegram-primary: #5682a3;
+    --telegram-secondary: #e7ebf0;
+    --bg-light-gray: #f8f9fa;
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+.width-404 {
+    width: 404px;
+}
+
+.left-right-0 {
+    left: 0px;
+    right: 0px;
+}
+
+.d-grid {
+    display: grid;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.bg-telegram-primary {
+    background: var(--telegram-primary) !important;
+}
+
+.text-telegram-primary {
+    color: var(--telegram-primary) !important;
+}
+
+.cursor__pointer {
+    cursor: pointer;
+}
+
+.z-index-25 {
+    z-index: 25;
+}

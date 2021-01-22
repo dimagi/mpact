@@ -5,3 +5,7 @@ Telethon==1.17.5
 djangorestframework==3.12.1
 cryptg  # Speeds up Telethon encyption/decryption
 Pillow~=8.0  # Telethon resizes images automatically
+telethon-session-sqlalchemy==0.2.16
+itsdangerous==1.1.0
+celery==5.0.5
+django-celery-beat==2.1.0
