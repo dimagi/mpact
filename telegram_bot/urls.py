@@ -22,5 +22,6 @@ urlpatterns = [
     path("api/", include("mpact.urls")),
     path("login/", TemplateView.as_view(template_name="index.html")),
     path("chat/", TemplateView.as_view(template_name="index.html")),
+    path("flagged-messages/", TemplateView.as_view(template_name="index.html")),
     path("", TemplateView.as_view(template_name="index.html")),
 ]

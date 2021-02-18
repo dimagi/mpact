@@ -1,19 +1,21 @@
 <template>
-  <div class="f2a-body width-404 bg-white border-0">
-    <form @submit.prevent="">
-      <h3 class="f2a-title">Password</h3>
-      <p class="country-selection text-center">
+  <div class='f2a-body width-404 bg-white border-0'>
+    <form @submit.prevent=''>
+      <h3 class='f2a-title'>Password</h3>
+      <p class='country-selection text-center'>
         You have enabled two-step verification, so your account is protected
         with an additional password.
       </p>
-      <input type="password" placeholder="Enter your code"
-        class="d-flex justify-content-center text-center input custom-input border-0 mx-auto"
+      <input type='password' placeholder='Enter your code'
+        class='d-flex justify-content-center text-center input custom-input border-0 mx-auto'
         @keyup="$emit('receive2FaText', $event)" />
     </form>
   </div>
 </template>
 <script>
-  export default {};
+export default {
+  name: 'two-factor-auth',
+};
 </script>
 
 <style scoped>

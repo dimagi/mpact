@@ -7,6 +7,8 @@ from .views import (
     Login,
     Logout,
     SendMessage,
+    FlagMessage,
+    FlagMessageDelete,
 )
 
 urlpatterns = [
@@ -16,4 +18,6 @@ urlpatterns = [
     path("message/individual/<int:individual_id>", GetIndividaulMessage.as_view()),
     path("message/chat/<int:chat_id>", GetChatMessage.as_view()),
     path("dialogs", Dialog.as_view()),
+    path("flaggedmessages", FlagMessage.as_view()),
+    path("flaggedmessages/<int:id>", FlagMessageDelete.as_view()),
 ]

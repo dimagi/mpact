@@ -5,9 +5,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from utils import token_required
 
-from .services import (
+from mpact.services import (
+    create_flagged_message,
+    delete_flagged_message,
     get_chat_msg,
     get_dialog,
+    get_flagged_messages,
     get_individual_msg,
     login,
     logout,
@@ -66,8 +69,10 @@ class GetIndividaulMessage(APIView):
 
     @token_required
     def get(self, request, phone, individual_id):
+        limit = request.GET.get("limit")
+        offset = request.GET.get("offset")
         result = new_or_current_event_loop().run_until_complete(
-            get_individual_msg(phone, individual_id)
+            get_individual_msg(phone, individual_id, limit, offset)
         )
         return Response(result[DATA], status=result[STATUS])
 
@@ -95,4 +100,32 @@ class Dialog(APIView):
     @token_required
     def get(self, request, phone):
         result = new_or_current_event_loop().run_until_complete(get_dialog(phone))
+        return Response(result[DATA], status=result[STATUS])
+
+
+class FlagMessage(APIView):
+    @token_required
+    def get(self, request, phone):
+        limit = request.GET.get("limit")
+        offset = request.GET.get("offset")
+        result = new_or_current_event_loop().run_until_complete(
+            get_flagged_messages(phone, limit, offset)
+        )
+        return Response(result[DATA], status=result[STATUS])
+
+    @token_required
+    def post(self, request, phone):
+        data = request.data
+        result = new_or_current_event_loop().run_until_complete(
+            create_flagged_message(phone, data)
+        )
+        return Response(result[DATA], status=result[STATUS])
+
+
+class FlagMessageDelete(APIView):
+    @token_required
+    def delete(self, request, phone, id):
+        result = new_or_current_event_loop().run_until_complete(
+            delete_flagged_message(phone, id)
+        )
         return Response(result[DATA], status=result[STATUS])

@@ -22,7 +22,13 @@ def get_or_none(model, **kwargs):
 
 
 def encode_token(token):
+    # TODO: Instead of creating a separate `SECURED_URL_SECRET_KEY`
+    #       constant, just reuse `settings.SECRET_KEY`.
     serializer = URLSafeSerializer(SECURED_URL_SECRET_KEY)
+
+    # TODO: `salt` is optional, and does not need to be secret. It's
+    #       used as a namespace.
+    #       See https://itsdangerous.palletsprojects.com/en/1.1.x/serializer/#the-salt
     encoded_token = serializer.dumps(token, salt=SECURITY_PASSWORD_SALT)
     return encoded_token
 

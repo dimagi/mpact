@@ -1,12 +1,20 @@
 from rest_framework import serializers
 
-from .models import Bot, BotIndividual, Chat, ChatBot, Individual, Message
+from .models import (
+    Bot,
+    BotIndividual,
+    Chat,
+    ChatBot,
+    Individual,
+    Message,
+    FlaggedMessage,
+)
 
 
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
         model = Individual
-        fields = ["id", "username", "first_name", "last_name"]
+        exclude = ["access_hash", "bots"]
 
 
 class BotIndividualSerializer(serializers.ModelSerializer):
@@ -43,5 +51,12 @@ class ChatBotSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ["individual", "sender", "message", "date"]
-        read_only_fields = ["date"]
+        exclude = []
+        read_only_fields = ["id", "date", "is_flagged"]
+
+
+class FlaggedMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FlaggedMessage
+        exclude = []
+        read_only_fields = ["id", "date"]

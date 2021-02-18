@@ -14,9 +14,9 @@
     width: 404px;
 }
 
-.left-right-0 {
-    left: 0px;
-    right: 0px;
+.left-right_0 {
+    left: 0;
+    right: 0;
 }
 
 .d-grid {
@@ -27,15 +27,11 @@
     display: flex;
 }
 
-.cursor-pointer {
-    cursor: pointer;
-}
-
-.bg-telegram-primary {
+.bg-telegram__primary {
     background: var(--telegram-primary) !important;
 }
 
-.text-telegram-primary {
+.text-telegram__primary {
     color: var(--telegram-primary) !important;
 }
 
@@ -43,6 +39,10 @@
     cursor: pointer;
 }
 
-.z-index-25 {
+.z-index__25 {
     z-index: 25;
+}
+
+.box-shadow__none {
+    box-shadow: none !important;
 }

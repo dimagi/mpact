@@ -138,3 +138,4 @@ dist
 *.session
 manage-dev
 bot.out
+dump.rdb

@@ -1,11 +1,11 @@
 import Api from './Api';
 
 export default {
-  async addNewMessage({
+  async login({
     formattedPhoneNumber,
     otpNumber,
     phoneCodeHash,
-    twoFactorAuthCode
+    twoFactorAuthCode,
   }) {
     try {
       const result = await Api.post('/login', {
@@ -17,6 +17,7 @@ export default {
       return result;
     } catch (err) {
       console.error(err);
+      throw err;
     }
-  }
-}
+  },
+};

@@ -54,6 +54,11 @@ class Individual(models.Model):
     first_name = models.TextField()
     last_name = models.TextField(null=True)
     access_hash = models.TextField()
+    study_id = models.TextField(null=True)
+    age = models.TextField(null=True)
+    gender = models.TextField(null=True)
+    address = models.TextField(null=True)
+    notes = models.TextField(null=True)
     bots = models.ManyToManyField(Bot, through="BotIndividual")
 
     def __str__(self):
@@ -77,6 +82,25 @@ class Message(models.Model):
     sender = models.IntegerField()
     message = models.TextField(null=True)
     date = models.DateTimeField(default=timezone.now)
+    is_flagged = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.individual.first_name} - {self.sender}"
+
+
+class FlaggedMessage(models.Model):
+    room_id = models.IntegerField()
+    message_id = models.IntegerField()
+    first_name = models.TextField()
+    message = models.TextField()
+    date = models.DateTimeField(default=timezone.now)
+    is_group = models.BooleanField()
+    # If the message is being flagged from individual chat,
+    # group_id is needed to link the flagged message screen to individual chat
+    group_id = models.IntegerField(null=True)
+
+    class Meta:
+        unique_together = ("room_id", "message_id")
+
+    def __str__(self):
+        return f"{self.room_id} - {self.first_name} - {self.message}"

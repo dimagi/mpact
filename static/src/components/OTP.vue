@@ -1,22 +1,23 @@
 <template>
-  <div class="otp-page width-404 bg-white border-0">
-    <div class="phone-number">{{ phone }}</div>
-    <div class="edit-number text-center cursor-pointer" @click="$emit('hideOtpComponent')">
+  <div class='otp-page width-404 bg-white border-0'>
+    <div class='phone-number'>{{ phone }}</div>
+    <div class='edit-number text-center cursor__pointer' @click="$emit('hideOtpComponent')">
       Edit phone number
     </div>
-    <div class="otp-info text-center">
+    <div class='otp-info text-center'>
       We've sent the code to the Telegram app on your mobile device.
     </div>
-    <div class="otp-info text-center">Please enter the code below.</div>
-    <input type="text" placeholder="Enter your code"
-      class="d-flex justify-content-center text-center input custom-input border-0 mx-auto"
+    <div class='otp-info text-center'>Please enter the code below.</div>
+    <input type='text' placeholder='Enter your code'
+      class='d-flex justify-content-center text-center input custom-input border-0 mx-auto'
       @keyup="$emit('receiveOtpText', $event)" />
   </div>
 </template>
 <script>
-  export default {
-    props: ['phone'],
-  };
+export default {
+  name: 'OTP',
+  props: ['phone'],
+};
 </script>
 
 <style scoped>

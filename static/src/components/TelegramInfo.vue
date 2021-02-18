@@ -3,7 +3,7 @@
     <div>
       <h3>
         <span class='about-text'>About</span><a @click='closeInfoComponent()'
-          class='hide-btn cursor-pointer position-absolute'>&times;</a>
+          class='hide-btn cursor__pointer position-absolute'>&times;</a>
       </h3>
       <p class='telegram-text'>
         The mpact-Telegram web-client is a free, fast and secure way to enjoy most of
@@ -25,14 +25,15 @@
 </template>
 
 <script>
-  export default {
-    props: ['receiveClass'],
-    methods: {
-      closeInfoComponent() {
-        this.$emit('closeInfoComponent');
-      },
+export default {
+  name: 'telegram-info',
+  props: ['receiveClass'],
+  methods: {
+    closeInfoComponent() {
+      this.$emit('closeInfoComponent');
     },
-  };
+  },
+};
 </script>
 <style scoped>
   .about-shown {

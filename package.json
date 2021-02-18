@@ -4,10 +4,12 @@
   "description": "A Telegram-based expert support system",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --delay 2s --ignore dist/ --ext .vue --exec 'npm run start'",
+    "lint": "eslint --ext .js --ext .vue --ignore-pattern 'dist/' static/*.vue static/src/**/*.vue static/src/**/*.js",
+    "lint:fix": "eslint --ext .js --ext .vue --ignore-pattern 'dist/' static/*.vue static/src/**/*.vue static/src/**/*.js --fix",
+    "dev": "nodemon --delay 2s --ignore dist/ --ext .js,.vue,.css --exec 'npm run start'",
     "start": "rm -rf ./static/dist && webpack --mode development",
-    "build": "rm -rf ./static/dist && webpack --config ./webpack.config.js"
+    "build": "rm -rf ./static/dist && webpack --config ./webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -22,6 +24,10 @@
   "homepage": "https://github.com/hussain-mohammed/mpact#readme",
   "devDependencies": {
     "css-loader": "^5.0.1",
+    "eslint": "^7.18.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-vue": "^7.5.0",
     "nodemon": "^2.0.7",
     "style-loader": "^2.0.0",
     "vue-loader": "^15.9.5",
@@ -32,7 +38,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "bootstrap": "^4.5.3",
     "jquery": "^3.5.1",
     "lodash": "^4.17.20",
