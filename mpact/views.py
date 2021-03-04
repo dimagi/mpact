@@ -53,8 +53,10 @@ class GetMessages(APIView):
     def get(self, request, room_id):
         limit = request.GET.get("limit")
         offset = request.GET.get("offset")
+        user_id = request.user.id
+
         result = new_or_current_event_loop().run_until_complete(
-            get_messages(room_id, limit, offset)
+            get_messages(room_id, user_id, limit, offset)
         )
         return Response(result[DATA], status=result[STATUS])
 
@@ -74,7 +76,8 @@ class Dialog(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        result = new_or_current_event_loop().run_until_complete(get_dialog())
+        user_id = request.user.id
+        result = new_or_current_event_loop().run_until_complete(get_dialog(user_id))
         return Response(result[DATA], status=result[STATUS])
 
 

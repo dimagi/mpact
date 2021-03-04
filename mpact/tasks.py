@@ -1,5 +1,6 @@
 from celery import shared_task
 from channels.layers import get_channel_layer
+from django.db.models import F
 from telegram_bot.constants import (
     DATA,
     FROM_GROUP,
@@ -15,7 +16,7 @@ from telegram_bot.constants import (
 from telegram_bot.utils import increment_messages_count
 from telethon.tl.types import InputPeerChat, InputPeerUser
 
-from .models import Chat, Individual
+from .models import Chat, Individual, UserChatUnread
 from .serializers import MessageSerializer
 from .services import start_bot_client
 from .views import new_or_current_event_loop
@@ -37,7 +38,7 @@ async def send_msg(receiver_id, message):
         current_bot = await bot.get_me()
         data[SENDER_ID] = current_bot.id
         data[SENDER_NAME] = current_bot.first_name
-        data[ROOM_ID] = receiver_id
+        data[ROOM_ID] = int(receiver_id)
         data[MESSAGE] = message
         try:
             group_chat = Chat.objects.get(id=receiver_id)
@@ -48,10 +49,10 @@ async def send_msg(receiver_id, message):
             data[FROM_GROUP] = False
 
         if data[FROM_GROUP]:
-            receiver = InputPeerChat(int(data[ROOM_ID]))
+            receiver = InputPeerChat(data[ROOM_ID])
         else:
             access_hash = individual_chat.access_hash
-            receiver = InputPeerUser(int(data[ROOM_ID]), int(access_hash))
+            receiver = InputPeerUser(data[ROOM_ID], int(access_hash))
 
         msg_inst = await bot.send_message(receiver, data[MESSAGE])
         data[TELEGRAM_MSG_ID] = msg_inst.id
@@ -59,6 +60,10 @@ async def send_msg(receiver_id, message):
         if serializer.is_valid():
             serializer.save()
             increment_messages_count(serializer)
+            # incrementing the unread count for all the admin users
+            UserChatUnread.objects.filter(room_id=data[ROOM_ID]).update(
+                unread_count=F("unread_count") + 1
+            )
 
             channel_layer = get_channel_layer()
             await channel_layer.group_send(

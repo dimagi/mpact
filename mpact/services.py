@@ -1,12 +1,14 @@
 import csv
 import json
 import uuid
+from contextlib import asynccontextmanager
 from datetime import timedelta
 
 import tablib
 from channels.layers import get_channel_layer
 from dateutil.parser import parse
 from django.core.management import call_command
+from django.db.models import F
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 from rest_framework import status
 from telegram_bot.constants import (
@@ -39,7 +41,15 @@ from telethon import TelegramClient
 from telethon.errors import MessageIdInvalidError
 from telethon.tl.types import InputPeerUser, PeerChat, PeerUser
 
-from .models import BotIndividual, Chat, ChatBot, FlaggedMessage, Individual, Message
+from .models import (
+    BotIndividual,
+    Chat,
+    ChatBot,
+    FlaggedMessage,
+    Individual,
+    Message,
+    UserChatUnread,
+)
 from .serializers import (
     ChatBotSerializer,
     FlaggedMessageSerializer,
@@ -48,13 +58,17 @@ from .serializers import (
 )
 
 
-def start_bot_client() -> TelegramClient:
+@asynccontextmanager
+async def start_bot_client() -> TelegramClient:
     """
     Returns a TelegramClient for bot
     """
-    return TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH).start(
-        bot_token=BOT_TOKEN
-    )
+    try:
+        bot = TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH)
+        bot = await bot.start(bot_token=BOT_TOKEN)
+        yield bot
+    finally:
+        await bot.disconnect()
 
 
 @exception
@@ -62,7 +76,7 @@ async def send_msg(data):
     """
     Sends the message to the particular chat
     """
-    async with await start_bot_client() as bot:
+    async with start_bot_client() as bot:
         current_bot = await bot.get_me()
         data[SENDER_ID] = current_bot.id
         data[SENDER_NAME] = current_bot.first_name
@@ -78,6 +92,10 @@ async def send_msg(data):
         if serializer.is_valid():
             serializer.save()
             increment_messages_count(serializer)
+            # incrementing the unread count for all the admin users
+            UserChatUnread.objects.filter(room_id=int(data[ROOM_ID])).update(
+                unread_count=F("unread_count") + 1
+            )
 
             channel_layer = get_channel_layer()
             await channel_layer.group_send(
@@ -91,12 +109,24 @@ async def send_msg(data):
 
 
 @exception
-async def get_dialog():
+async def get_dialog(user_id):
     """
     Returns dialogs if the user is authorized
     """
     chats = ChatBot.objects.all()
     chats_serializer = ChatBotSerializer(chats, many=True)
+    chat_unread = UserChatUnread.objects.filter(user_id=user_id)
+
+    # Adding Unread count with each chat
+    for chat in chats_serializer.data:
+        chat["chat"]["unread_count"] = chat_unread.filter(room_id=chat["chat"]["id"])[
+            0
+        ].unread_count
+        for indi in chat["bot"]["bot_individuals"]:
+            indi["individual"]["unread_count"] = chat_unread.filter(
+                room_id=indi["individual"]["id"]
+            )[0].unread_count
+
     return {
         DATA: {"dialogs": chats_serializer.data, IS_SUCCESS: True},
         STATUS: status.HTTP_200_OK,
@@ -104,7 +134,7 @@ async def get_dialog():
 
 
 @exception
-async def get_messages(room_id, limit, offset):
+async def get_messages(room_id, user_id, limit, offset):
     """
     Returns the messages
     """
@@ -123,6 +153,11 @@ async def get_messages(room_id, limit, offset):
         for msg in serializer.data:
             if msg[SENDER_ID] in individuals_id:
                 msg["is_link"] = True
+
+    # Resetting the unread count to 0 for the logged in admin user.
+    UserChatUnread.objects.filter(user_id=user_id, room_id=room_id).update(
+        unread_count=0
+    )
 
     return {
         DATA: {"messages": serializer.data[::-1], IS_SUCCESS: True},
@@ -276,7 +311,7 @@ async def edit_message(room_id, data):
     """
     Returns the updated message
     """
-    async with await start_bot_client() as bot:
+    async with start_bot_client() as bot:
         msg_inst = Message.objects.get(id=data["message_id"])
         if msg_inst.from_group:
             receiver = await bot.get_entity(PeerChat(room_id))

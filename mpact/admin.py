@@ -11,6 +11,7 @@ from .models import (
     FlaggedMessage,
     Individual,
     Message,
+    UserChatUnread,
 )
 
 admin.site.register(Chat)
@@ -20,6 +21,7 @@ admin.site.register(ChatBot)
 admin.site.register(BotIndividual)
 admin.site.register(Message)
 admin.site.register(FlaggedMessage)
+admin.site.register(UserChatUnread)
 
 
 class CustomPeriodicTask(PeriodicTask):

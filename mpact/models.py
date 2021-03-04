@@ -102,3 +102,15 @@ class FlaggedMessage(models.Model):
 
     def __str__(self):
         return f"{self.message.id} - {self.message.room_id}"
+
+
+class UserChatUnread(models.Model):
+    user_id = models.IntegerField()
+    room_id = models.IntegerField()
+    unread_count = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("user_id", "room_id")
+
+    def __str__(self):
+        return f"{self.user_id} - {self.room_id} - {self.unread_count}"

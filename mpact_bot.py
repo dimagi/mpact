@@ -6,10 +6,19 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "telegram_bot.settings")
 django.setup()
 
 from channels.layers import get_channel_layer
+from django.db.models import F
 from telethon import TelegramClient, events
 from telethon.tl import types
 
-from mpact.models import Bot, BotIndividual, Chat, ChatBot, Individual
+from mpact.models import (
+    Bot,
+    BotIndividual,
+    Chat,
+    ChatBot,
+    Individual,
+    User,
+    UserChatUnread,
+)
 from mpact.serializers import ChatSerializer, MessageSerializer
 from telegram_bot.constants import (
     BOT_TOKEN,
@@ -69,6 +78,11 @@ async def chat_handler(event):
                     chat_bot = ChatBot.objects.create(chat=chat, bot=bot)
                     chat_bot.save()
 
+            # creating records in the UserChatUnread model for maintaining
+            # unread count for each user and group chat.
+            for user in User.objects.all():
+                UserChatUnread.objects.create(user_id=user.pk, room_id=data["id"])
+
         elif event.new_title:
             chat = get_or_none(Chat, id=event.action_message.peer_id.chat_id)
             if chat:
@@ -113,6 +127,14 @@ async def incoming_message_handler(event):
         # check if the message is from individual(PeerUser) or group(PeerChat) chat
         if isinstance(event.message.peer_id, types.PeerUser):
             msg_data[FROM_GROUP] = False
+            if event.text == "/start":
+                # creating records in the UserChatUnread model for maintaining
+                # unread count for each user and individual chat.
+                for user in User.objects.all():
+                    UserChatUnread.objects.create(
+                        user_id=user.pk, room_id=event.message.peer_id.user_id
+                    )
+
             await save_send_message(msg_data, channel_layer)
 
             if event.text == "/start":
@@ -177,6 +199,11 @@ async def save_send_message(msg_data, channel_layer):
     if serializer.is_valid():
         serializer.save()
         increment_messages_count(serializer)
+        # incrementing the unread count for all the admin users
+        UserChatUnread.objects.filter(room_id=msg_data[ROOM_ID]).update(
+            unread_count=F("unread_count") + 1
+        )
+
         await channel_layer.group_send(
             WEBSOCKET_ROOM_NAME,
             {"type": "chat_message", MESSAGE: serializer.data},
