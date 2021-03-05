@@ -131,14 +131,14 @@ async def incoming_message_handler(event):
                 # creating records in the UserChatUnread model for maintaining
                 # unread count for each user and individual chat.
                 for user in User.objects.all():
-                    UserChatUnread.objects.create(
+                    user_chat_unread, _ = UserChatUnread.objects.get_or_create(
                         user_id=user.pk, room_id=event.message.peer_id.user_id
                     )
 
-            await save_send_message(msg_data, channel_layer)
+                await start_handler(event, channel_layer, msg_data)
 
-            if event.text == "/start":
-                await start_handler(event, channel_layer)
+            else:
+                await save_send_message(msg_data, channel_layer)
 
         elif isinstance(event.message.peer_id, types.PeerChat):
             msg_data[FROM_GROUP] = True
@@ -148,7 +148,7 @@ async def incoming_message_handler(event):
         logger.exception(exception)
 
 
-async def start_handler(event, channel_layer):
+async def start_handler(event, channel_layer, msg_data):
     """
     Handler for "/start"
     """
@@ -173,6 +173,7 @@ async def start_handler(event, channel_layer):
     if bi_created:
         bot_individual.save()
 
+    await save_send_message(msg_data, channel_layer)
     await event.respond(WELCOME)
     msg_data = message_data(
         event.chat_id, event.message.id, current_bot.id, current_bot.first_name, WELCOME

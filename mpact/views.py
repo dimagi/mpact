@@ -3,8 +3,10 @@ import asyncio
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from telegram_bot.constants import DATA, STATUS
 
+from mpact.serializers import CustomTokenObtainPairSerializer
 from mpact.services import (
     create_flagged_message,
     delete_flagged_message,
@@ -148,3 +150,7 @@ class IndividualDetails(APIView):
             update_individual_details(individual_id, data)
         )
         return Response(result[DATA], status=result[STATUS])
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
