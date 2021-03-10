@@ -433,18 +433,15 @@ export default {
         console.error(err);
       }
     },
-    async sendMessage({
-      roomId,
-      content,
-      file,
-      replyMessage,
-    }) {
+    async sendMessage({ roomId, content, file, replyMessage }) {
       try {
+        const { groupView } = this;
         const response = await MessageService.addNewMessage({
           roomId,
           content,
           file,
           replyMessage,
+          groupView,
         });
         if (response && response.status === 200) {
           this.messagesLoaded = false;

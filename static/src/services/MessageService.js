@@ -4,11 +4,13 @@ export default {
   async addNewMessage({
     roomId,
     content,
+    groupView,
   }) {
     try {
-      const response = await Api.post('/message', {
-        individual: roomId,
+      const response = await Api.post('/messages', {
+        room_id: roomId,
         message: content,
+        from_group: groupView,
       });
       return response;
     } catch (err) {
@@ -22,7 +24,7 @@ export default {
     limit = 50,
   }) {
     try {
-      const response = await Api.get(`message/individual/${roomId}`, {
+      const response = await Api.get(`messages/${roomId}`, {
         params: {
           offset,
           limit,
@@ -40,7 +42,7 @@ export default {
     limit,
   }) {
     try {
-      const response = await Api.get(`message/chat/${roomId}`, {
+      const response = await Api.get(`messages/${roomId}`, {
         params: {
           offset,
           limit,

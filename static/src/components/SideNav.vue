@@ -2,7 +2,7 @@
   <div class='side-nav h-100'>
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
-      <div class='text-truncate username text-left'>{{ username }}</div>
+      <div class='text-truncate username text-left capitalize'>{{ username }}</div>
       <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Bookmarks'></div>
       <div class='logout h-100' @click='logout()' title='logout'></div>
     </div>
@@ -39,6 +39,8 @@
   </div>
 </template>
 <script>
+import { clearStorage } from '../utils/helpers';
+ 
 export default {
   name: 'side-nav',
   props: ['username', 'contacts'],
@@ -62,9 +64,10 @@ export default {
     },
     async logout() {
       try {
-        await this.$http.get('/logout');
-        localStorage.removeItem('username');
-        localStorage.removeItem('Token');
+        await this.$http.post('logout', {
+          refresh_token: `${localStorage.getItem('refreshToken')}`,
+        });
+        clearStorage();
         this.$router.push('/login');
       } catch (err) {
         console.error(err);
@@ -75,6 +78,9 @@ export default {
 </script>
 
 <style scoped>
+  .capitalize{
+    text-transform: capitalize;
+  }
   .side-nav {
     background: var(--bg-light-gray);
     box-shadow: 1px 0px 8px #000;
