@@ -1,10 +1,20 @@
 import asyncio
 
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from telegram_bot.constants import DATA, STATUS
+from telegram_bot.constants import (
+    DATA,
+    FAIL_MSG,
+    IS_SUCCESS,
+    LOGOUT_SUCCESS,
+    MESSAGE,
+    STATUS,
+)
+from telegram_bot.logger import logger
 
 from mpact.serializers import CustomTokenObtainPairSerializer
 from mpact.services import (
@@ -21,7 +31,6 @@ from mpact.services import (
     send_msg,
     update_individual_details,
 )
-
 
 def new_or_current_event_loop():
     try:
@@ -154,3 +163,23 @@ class IndividualDetails(APIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class Logout(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response(
+                {MESSAGE: LOGOUT_SUCCESS, IS_SUCCESS: True},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as exception:
+            logger.exception(exception)
+            return Response(
+                {MESSAGE: FAIL_MSG, IS_SUCCESS: False},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

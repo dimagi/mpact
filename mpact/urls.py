@@ -9,6 +9,7 @@ from .views import (
     IndividualDetails,
     ScheduleMessages,
     SendMessage,
+    Logout,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path("schedule_messages", ScheduleMessages.as_view()),
     path("export_messages", ExportMessages.as_view()),
     path("individuals/<int:individual_id>", IndividualDetails.as_view()),
+    path('logout', Logout.as_view()),
 ]
