@@ -127,7 +127,7 @@ async def incoming_message_handler(event):
         # check if the message is from individual(PeerUser) or group(PeerChat) chat
         if isinstance(event.message.peer_id, types.PeerUser):
             msg_data[FROM_GROUP] = False
-            if event.text == "/start":
+            if not Individual.objects.filter(id=msg_data[ROOM_ID]).exists():
                 # creating records in the UserChatUnread model for maintaining
                 # unread count for each user and individual chat.
                 for user in User.objects.all():
@@ -136,9 +136,7 @@ async def incoming_message_handler(event):
                     )
 
                 await start_handler(event, channel_layer, msg_data)
-
-            else:
-                await save_send_message(msg_data, channel_layer)
+            await save_send_message(msg_data, channel_layer)
 
         elif isinstance(event.message.peer_id, types.PeerChat):
             msg_data[FROM_GROUP] = True
