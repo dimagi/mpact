@@ -136,7 +136,8 @@ async def incoming_message_handler(event):
                     )
 
                 await start_handler(event, channel_layer, msg_data)
-            await save_send_message(msg_data, channel_layer)
+            else:
+                await save_send_message(msg_data, channel_layer)
 
         elif isinstance(event.message.peer_id, types.PeerChat):
             msg_data[FROM_GROUP] = True
