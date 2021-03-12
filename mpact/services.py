@@ -148,7 +148,7 @@ async def get_messages(room_id, user_id, limit, offset):
         data = Message.objects.filter(room_id=room_id).order_by("-date")
     serializer = MessageSerializer(data, many=True)
 
-    if data[0].from_group:
+    if data and data[0].from_group:
         individuals_id = extract_individual_ids(room_id)
         for msg in serializer.data:
             if msg[SENDER_ID] in individuals_id:
