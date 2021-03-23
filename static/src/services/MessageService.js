@@ -1,3 +1,4 @@
+import store from '../../store'
 import Api from './Api';
 
 export default {
@@ -12,7 +13,6 @@ export default {
         message: content,
         from_group: groupView,
       });
-      return response;
     } catch (err) {
       console.error(err);
       throw err;
@@ -30,6 +30,9 @@ export default {
           limit,
         },
       });
+      const currentUnreadMessages = store.state.unread_messages;
+      currentUnreadMessages[roomId] = 0
+      store.dispatch('update_unread_messages', currentUnreadMessages)
       return response;
     } catch (err) {
       console.error(err);
@@ -48,6 +51,9 @@ export default {
           limit,
         },
       });
+      const currentUnreadMessages = store.state.unread_messages;
+      currentUnreadMessages[roomId] = 0
+      store.dispatch('update_unread_messages', currentUnreadMessages)
       return response;
     } catch (err) {
       console.error(err);
@@ -83,21 +89,13 @@ export default {
     }
   },
   async flagMessage({
-    roomId,
-    messageId,
-    firstName,
     message,
     groupId,
-    isGroup,
   }) {
     try {
       const response = await Api.post('flaggedmessages', {
-        room_id: roomId,
-        message_id: messageId,
-        first_name: firstName,
         message,
         group_id: groupId,
-        is_group: isGroup,
       });
       return response;
     } catch (err) {
@@ -106,16 +104,9 @@ export default {
     }
   },
   async fetchFlaggedMessages({
-    offset = 0,
-    limit = 50,
   }) {
     try {
-      const response = await Api.get('flaggedmessages', {
-        params: {
-          offset,
-          limit,
-        },
-      });
+      const response = await Api.get('flaggedmessages');
       return response;
     } catch (err) {
       console.error(err);

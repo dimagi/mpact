@@ -204,6 +204,9 @@ async def create_flagged_message(data):
     if serializer.is_valid():
         serializer.create(validated_data=data)
 
+    message = Message.objects.get(pk=data["message"])
+    message.is_flagged = True
+    message.save()
     return {
         DATA: {FLAGGED_MESSAGE: data, IS_SUCCESS: True},
         STATUS: status.HTTP_200_OK,
@@ -224,6 +227,9 @@ async def delete_flagged_message(id):
         }
 
     if flagged_message.delete():
+        message = Message.objects.get(pk=flagged_message.message.id)
+        message.is_flagged = False
+        message.save()
         return {
             DATA: {MESSAGE: DELETE_SUCCESS, IS_SUCCESS: True},
             STATUS: status.HTTP_200_OK,

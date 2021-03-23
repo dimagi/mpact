@@ -90,6 +90,7 @@ class Message(models.Model):
     message = models.TextField(null=True)
     date = models.DateTimeField(default=timezone.now)
     from_group = models.BooleanField()
+    is_flagged = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.room_id} - {self.sender_name} - {self.message}"

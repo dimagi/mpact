@@ -33,9 +33,12 @@ const router = new Router({
   ],
 });
 
-const token = localStorage.getItem('Token');
 router.beforeEach((to, from, next) => {
-  if (to.name === 'login') {
+  const token = localStorage.getItem('Token');
+  if (to.name === 'Auth') {
+    if (token){
+      router.push('/chat');
+    }
     next();
   } else if (to.meta.auth && token) {
     next();

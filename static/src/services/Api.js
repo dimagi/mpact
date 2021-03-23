@@ -32,27 +32,27 @@ axios.interceptors.response.use(
 
     if (err.response.status === 401 || err.response.status === 403) {
       if (err.response.data.code === 'token_not_valid' && localStorage.getItem('Token')) {
-        axios
+        return axios
           .post(`${baseURL}/token/refresh/`, {
             refresh: `${localStorage.getItem('refreshToken')}`,
           })
-          .then((res) => {
+          .then(async (res) => {
             localStorage.setItem('Token', res.data.access);
-            location.reload();
-            return new Promise((resolve, reject) => {
-              resolve(res);
+            return new Promise(async (resolve, reject) => {
+              const axiosErr = await axios.request(err.config)
+              resolve(axiosErr);
             });
           })
           .catch((err) => {
             return new Promise((resolve, reject) => {
               clearStorage();
-              router.push('/login');
+              router.push('/login').catch((err)=>{console.log(err);});
               reject(err);
             });
           });
       } else {
         clearStorage();
-        router.push('/login');
+        router.push('/login').catch((err)=>{console.log(err);});
       }
     }
     return Promise.reject(err);
