@@ -5,8 +5,11 @@ Telethon==1.17.5
 djangorestframework==3.12.1
 cryptg  # Speeds up Telethon encyption/decryption
 Pillow~=8.0  # Telethon resizes images automatically
-telethon-session-sqlalchemy==0.2.16
-itsdangerous==1.1.0
 celery==5.0.5
 django-celery-beat==2.1.0
 redis==3.5.3
+channels==3.0.3
+cryptography==3.4.4  # cryptograpgy compatible version for pyopenssl 20.0.1
+channels-redis==3.2.0
+tablib[xlsx]==3.0.0
+djangorestframework-simplejwt==4.6.0

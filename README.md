@@ -24,8 +24,6 @@ A Telegram-based expert support system
     $ export TELEGRAM_API_ID=<Telegram API ID>
     $ export TELEGRAM_API_HASH=<Telegram API Hash>
     $ export ALLOWED_HOSTS='127.0.0.1 localhost'
-    $ export SECURED_URL_SECRET_KEY="1234"
-    $ export SECURITY_PASSWORD_SALT="1234"
 
 
 ## There is a script for that
@@ -40,7 +38,7 @@ environment variables in it:
     $ cp manage-dev.example manage-dev
 
 Open **manage-dev** in your favorite editor, and set the values of
-`SECRET_KEY`, `BOT_TOKEN`, `TELEGRAM_API_ID`,  `TELEGRAM_API_HASH`, `SECURED_URL_SECRET_KEY` and `SECURITY_PASSWORD_SALT`
+`SECRET_KEY`, `BOT_TOKEN`, `TELEGRAM_API_ID`,  and `TELEGRAM_API_HASH`
 
 You can generate a secret key with
 

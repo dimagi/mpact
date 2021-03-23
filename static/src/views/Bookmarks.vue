@@ -3,8 +3,7 @@
     <div class='row m-0 p-0'>
       <div class='col-10 p-0'>
         <Toast :text='toastMessage' :hasError='showToastError' />
-        <chat-window height='100vh' class='bookmarks-widget-1' v-bind='chatProps'
-          @fetch-messages='fetchMoreBookmarks($event)'>
+        <chat-window height='100vh' class='bookmarks-widget-1' v-bind='chatProps' :messages-loaded='chatProps.messagesLoaded'>
           <template #message='{message}'>
             <div :id='message._id' class='message-container'>
               <div class='message-card cursor__pointer'>
@@ -94,8 +93,6 @@ export default {
   mixins: [ToastMixin],
   data() {
     return {
-      limit: 50,
-      offset: 0,
       toastMessage: '',
       showToastError: false,
       lastMessage: null,
@@ -123,7 +120,6 @@ export default {
   },
   mounted() {
     try {
-      this.chatProps.currentUserId = localStorage.getItem('userId');
       this.fetchBookmarks();
     } catch (err) {
       console.error(err);
@@ -138,18 +134,19 @@ export default {
           result.data.flagged_messages.forEach((d) => {
             formattedMessages.push({
               _id: d.id,
-              messageId: d.message_id,
-              firstName: d.first_name || '',
-              content: d.message || '',
-              sender_id: d.sender || 1,
+              messageId: d.message.id,
+              firstName: d.message.sender_name || '',
+              content: d.message.message || '',
+              sender_id: d.message.sender_id || 1,
               date: convertDate(d.date),
               timestamp: convertTime(d.date),
-              roomId: d.room_id,
-              isGroup: d.is_group || false,
+              roomId: d.message.room_id,
+              isGroup: d.message.from_group || false,
               groupId: d.group_id || null,
             });
           });
           this.chatProps.messages = formattedMessages;
+          this.chatProps.messagesLoaded = true;
           this.chatProps.rooms = [{
             roomId: 1,
             roomName: 'Bookmarks',
@@ -158,54 +155,6 @@ export default {
           this.showToastError = false;
           this.toastMessage = 'Fetched all flagged messages';
           this.showToast();
-          if (formattedMessages.length < 50) {
-            this.chatProps.messagesLoaded = true;
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    async fetchMoreBookmarks({
-      options = {},
-    }) {
-      try {
-        const {
-          reset = false,
-        } = options;
-        if (reset) {
-          return;
-        }
-        const params = {
-          offset: this.offset,
-          limit: this.limit,
-        };
-        const result = await MessageService.fetchFlaggedMessages(params);
-        if (result && result.data.flagged_messages) {
-          const formattedMessages = [];
-          result.data.flagged_messages.forEach((d) => {
-            formattedMessages.push({
-              _id: d.id,
-              messageId: d.message_id,
-              firstName: d.first_name || '',
-              content: d.message || '',
-              sender_id: d.sender || 1,
-              date: convertDate(d.date),
-              timestamp: convertTime(d.date),
-              roomId: d.room_id,
-              isGroup: d.is_group || false,
-              groupId: d.group_id || null,
-            });
-          });
-          this.chatProps.messages = [formattedMessages, ...this.bookmarks];
-          this.chatProps.rooms = [{
-            roomId: 1,
-            roomName: 'Bookmarks',
-            users: [],
-          }];
-          if (formattedMessages.length < 50) {
-            this.chatProps.messagesLoaded = true;
-          }
         }
       } catch (err) {
         console.error(err);

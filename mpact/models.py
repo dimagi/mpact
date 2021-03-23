@@ -24,6 +24,10 @@ class Chat(models.Model):
     id = models.IntegerField(primary_key=True)
     title = models.TextField()
     created_at = models.DateTimeField()
+    start_date = models.DateField(default=timezone.now)
+    start_time = models.TimeField(default=timezone.now)
+    messages_count = models.IntegerField(default=0)
+    participant_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.id} - {self.title}"
@@ -55,11 +59,12 @@ class Individual(models.Model):
     last_name = models.TextField(null=True)
     access_hash = models.TextField()
     study_id = models.TextField(null=True)
-    age = models.TextField(null=True)
+    age = models.IntegerField(null=True)
     gender = models.TextField(null=True)
     address = models.TextField(null=True)
     notes = models.TextField(null=True)
     bots = models.ManyToManyField(Bot, through="BotIndividual")
+    messages_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.id} - {self.first_name}"
@@ -78,29 +83,35 @@ class BotIndividual(models.Model):
 
 
 class Message(models.Model):
-    individual = models.ForeignKey(Individual, on_delete=models.CASCADE)
-    sender = models.IntegerField()
+    telegram_msg_id = models.IntegerField()
+    sender_id = models.IntegerField()
+    sender_name = models.TextField()
+    room_id = models.IntegerField()
     message = models.TextField(null=True)
     date = models.DateTimeField(default=timezone.now)
+    from_group = models.BooleanField()
     is_flagged = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.individual.first_name} - {self.sender}"
+        return f"{self.room_id} - {self.sender_name} - {self.message}"
 
 
 class FlaggedMessage(models.Model):
-    room_id = models.IntegerField()
-    message_id = models.IntegerField()
-    first_name = models.TextField()
-    message = models.TextField()
+    message = models.OneToOneField(Message, on_delete=models.CASCADE)
     date = models.DateTimeField(default=timezone.now)
-    is_group = models.BooleanField()
-    # If the message is being flagged from individual chat,
-    # group_id is needed to link the flagged message screen to individual chat
     group_id = models.IntegerField(null=True)
 
+    def __str__(self):
+        return f"{self.message.id} - {self.message.room_id}"
+
+
+class UserChatUnread(models.Model):
+    user_id = models.IntegerField()
+    room_id = models.IntegerField()
+    unread_count = models.IntegerField(default=0)
+
     class Meta:
-        unique_together = ("room_id", "message_id")
+        unique_together = ("user_id", "room_id")
 
     def __str__(self):
-        return f"{self.room_id} - {self.first_name} - {self.message}"
+        return f"{self.user_id} - {self.room_id} - {self.unread_count}"

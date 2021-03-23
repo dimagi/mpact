@@ -1,22 +1,36 @@
 import asyncio
 
-from constants import DATA, STATUS
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from utils import token_required
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from telegram_bot.constants import (
+    DATA,
+    FAIL_MSG,
+    IS_SUCCESS,
+    LOGOUT_SUCCESS,
+    MESSAGE,
+    STATUS,
+)
+from telegram_bot.logger import logger
 
+from mpact.serializers import CustomTokenObtainPairSerializer
 from mpact.services import (
     create_flagged_message,
     delete_flagged_message,
-    get_chat_msg,
+    download_schedule_messages_file,
+    edit_message,
+    export_messages,
     get_dialog,
     get_flagged_messages,
-    get_individual_msg,
-    login,
-    logout,
+    get_individual_details,
+    get_messages,
+    schedule_messages,
     send_msg,
+    update_individual_details,
 )
-
 
 def new_or_current_event_loop():
     try:
@@ -27,67 +41,40 @@ def new_or_current_event_loop():
         return loop
 
 
-class Login(APIView):
-    """
-    It is used to login into telegram
-    """
-
-    def post(self, request):
-        # request.data will contain phone or code.
-        data = request.data
-        result = new_or_current_event_loop().run_until_complete(login(data))
-        return Response(result[DATA], status=result[STATUS])
-
-
-class Logout(APIView):
-    """
-    It is used to log out from telegram.
-    """
-
-    @token_required
-    def get(self, request, phone):
-        result = new_or_current_event_loop().run_until_complete(logout(phone))
-        return Response(result[DATA], status=result[STATUS])
-
-
 class SendMessage(APIView):
     """
     This is a sample api to send a message.
     """
 
-    @token_required
-    def post(self, request, phone):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
         data = request.data
-        result = new_or_current_event_loop().run_until_complete(send_msg(phone, data))
+        result = new_or_current_event_loop().run_until_complete(send_msg(data))
         return Response(result[DATA], status=result[STATUS])
 
 
-class GetIndividaulMessage(APIView):
+class GetMessages(APIView):
     """
-    returns the individual messages.
+    returns the messages.
     """
 
-    @token_required
-    def get(self, request, phone, individual_id):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, room_id):
         limit = request.GET.get("limit")
         offset = request.GET.get("offset")
+        user_id = request.user.id
+
         result = new_or_current_event_loop().run_until_complete(
-            get_individual_msg(phone, individual_id, limit, offset)
+            get_messages(room_id, user_id, limit, offset)
         )
         return Response(result[DATA], status=result[STATUS])
 
-
-class GetChatMessage(APIView):
-    """
-    returns the chat messages.
-    """
-
-    @token_required
-    def get(self, request, phone, chat_id):
-        limit = request.GET.get("limit")
-        offset = request.GET.get("offset")
+    def put(self, request, room_id):
+        data = request.data
         result = new_or_current_event_loop().run_until_complete(
-            get_chat_msg(phone, chat_id, limit, offset)
+            edit_message(room_id, data)
         )
         return Response(result[DATA], status=result[STATUS])
 
@@ -97,35 +84,102 @@ class Dialog(APIView):
     It is used to retrive dialogs(open conversations)
     """
 
-    @token_required
-    def get(self, request, phone):
-        result = new_or_current_event_loop().run_until_complete(get_dialog(phone))
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user_id = request.user.id
+        result = new_or_current_event_loop().run_until_complete(get_dialog(user_id))
         return Response(result[DATA], status=result[STATUS])
 
 
 class FlagMessage(APIView):
-    @token_required
-    def get(self, request, phone):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
         limit = request.GET.get("limit")
         offset = request.GET.get("offset")
         result = new_or_current_event_loop().run_until_complete(
-            get_flagged_messages(phone, limit, offset)
+            get_flagged_messages(limit, offset)
         )
         return Response(result[DATA], status=result[STATUS])
 
-    @token_required
-    def post(self, request, phone):
+    def post(self, request):
         data = request.data
         result = new_or_current_event_loop().run_until_complete(
-            create_flagged_message(phone, data)
+            create_flagged_message(data)
         )
         return Response(result[DATA], status=result[STATUS])
 
 
 class FlagMessageDelete(APIView):
-    @token_required
-    def delete(self, request, phone, id):
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, id):
         result = new_or_current_event_loop().run_until_complete(
-            delete_flagged_message(phone, id)
+            delete_flagged_message(id)
         )
         return Response(result[DATA], status=result[STATUS])
+
+
+class ScheduleMessages(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        result = new_or_current_event_loop().run_until_complete(
+            download_schedule_messages_file()
+        )
+        return Response(result[DATA], status=result[STATUS])
+
+    def post(self, request):
+        file = request.data["file"]
+        result = new_or_current_event_loop().run_until_complete(schedule_messages(file))
+        return Response(result[DATA], status=result[STATUS])
+
+
+class ExportMessages(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        result = new_or_current_event_loop().run_until_complete(export_messages())
+        return Response(result[DATA], status=result[STATUS])
+
+
+class IndividualDetails(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, individual_id):
+        result = new_or_current_event_loop().run_until_complete(
+            get_individual_details(individual_id)
+        )
+        return Response(result[DATA], status=result[STATUS])
+
+    def put(self, request, individual_id):
+        data = request.data
+        result = new_or_current_event_loop().run_until_complete(
+            update_individual_details(individual_id, data)
+        )
+        return Response(result[DATA], status=result[STATUS])
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+class Logout(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response(
+                {MESSAGE: LOGOUT_SUCCESS, IS_SUCCESS: True},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as exception:
+            logger.exception(exception)
+            return Response(
+                {MESSAGE: FAIL_MSG, IS_SUCCESS: False},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

@@ -1,298 +1,168 @@
+import csv
+import json
+import uuid
 from contextlib import asynccontextmanager
+from datetime import timedelta
 
-from constants import (
+import tablib
+from channels.layers import get_channel_layer
+from dateutil.parser import parse
+from django.core.management import call_command
+from django.db.models import F
+from django_celery_beat.models import ClockedSchedule, PeriodicTask
+from rest_framework import status
+from telegram_bot.constants import (
     BOT_TOKEN,
-    CODE,
     DATA,
     DELETE_FAIL,
     DELETE_SUCCESS,
-    DIALOGS_LIMIT,
-    FIRST_NAME,
+    EDIT_FAIL,
+    ERRONEOUS_ROWS,
+    ERRONEOUS_SHEETS,
+    FILE_DOWNLOADED,
     FLAGGED_MESSAGE,
-    GROUP_MSGS_FORBIDDEN,
-    ID,
-    INDIVIDUAL,
-    INVALID_CODE,
+    FROM_GROUP,
     IS_SUCCESS,
-    LAST_NAME,
-    LOGOUT,
     MESSAGE,
-    NOT_AUTHORIZED,
-    PASSWORD,
-    PASSWORD_REQUIRED,
-    PHONE,
-    PHONE_CODE_HASH,
-    PHONE_NOT_REGISTERED,
+    MESSAGE_SCHEDULED,
     RECORD_NF,
+    ROOM_ID,
+    SENDER_ID,
+    SENDER_NAME,
     STATUS,
     TELEGRAM_API_HASH,
     TELEGRAM_API_ID,
-    TOKEN,
-    TWO_FA_ENABLED,
-    USERNAME,
+    TELEGRAM_MSG_ID,
+    WEBSOCKET_ROOM_NAME,
 )
-from django.contrib.auth.models import User
-from logger import logger
-from rest_framework import status
-from telegram_bot.settings import container
+from telegram_bot.logger import logger
+from telegram_bot.utils import exception, increment_messages_count
 from telethon import TelegramClient
-from telethon.errors import (
-    PhoneCodeExpiredError,
-    PhoneCodeInvalidError,
-    SessionPasswordNeededError,
-)
-from telethon.tl.types import InputPeerUser
-from utils import encode_token, get_or_none
+from telethon.errors import MessageIdInvalidError
+from telethon.tl.types import InputPeerUser, PeerChat, PeerUser
 
-from .models import BotIndividual, ChatBot, FlaggedMessage, Individual, Message
-from .serializers import ChatBotSerializer, FlaggedMessageSerializer, MessageSerializer
+from .models import (
+    BotIndividual,
+    Chat,
+    ChatBot,
+    FlaggedMessage,
+    Individual,
+    Message,
+    UserChatUnread,
+)
+from .serializers import (
+    ChatBotSerializer,
+    FlaggedMessageSerializer,
+    IndividualDetailSerializer,
+    MessageSerializer,
+)
 
 
 @asynccontextmanager
-async def client_context(phone):
-    """
-    TelegramClient is already an async context manager. This context
-    manager connect to the telegram and logs exceptions.
-    """
-    try:
-        client = get_telegram_client(phone)
-        await client.connect()
-        yield client
-    except Exception as exception:
-        logger.exception(exception)
-        raise
-    await client.disconnect()
-
-
-def start_bot_client() -> TelegramClient:
+async def start_bot_client() -> TelegramClient:
     """
     Returns a TelegramClient for bot
     """
-    return get_telegram_client("bot").start(bot_token=BOT_TOKEN)
-
-
-def get_telegram_client(session_name: str) -> TelegramClient:
-    session = container.new_session(session_name)
-    return TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH)
-
-
-async def login(data):
-    """
-    Returns the logged in user details or hash code & other details for code request
-    """
-    user = get_or_none(User, profile__phone=data[PHONE])
-    if not user:
-        NOT_AUTHORIZED[DATA][MESSAGE] = PHONE_NOT_REGISTERED
-        return NOT_AUTHORIZED
-
-    async with client_context(data[PHONE]) as client:
-        if PASSWORD in data:
-            return await two_factor_auth(client, data)
-        elif CODE in data:
-            return await validate_code(client, data)
-        # sending otp to phone number
-        code_request = await client.send_code_request(data[PHONE])
-        return {
-            DATA: {PHONE_CODE_HASH: code_request.phone_code_hash, IS_SUCCESS: True},
-            STATUS: status.HTTP_200_OK,
-        }
-
-
-async def two_factor_auth(client, data):
-    """
-    Verify the password entered by the user and
-    returns the user details upon successful login
-    """
-    user_details = await client.sign_in(
-        password=data[PASSWORD],
-    )
-    await client.disconnect()
-    return ok_response(user_details, data)
-
-
-def ok_response(user_details, data):
-    return {
-        DATA: {
-            ID: user_details.id,
-            FIRST_NAME: user_details.first_name,
-            TOKEN: encode_token(
-                {
-                    LAST_NAME: user_details.last_name,
-                    USERNAME: user_details.username,
-                    PHONE: data[PHONE],
-                }
-            ),
-            IS_SUCCESS: True,
-        },
-        STATUS: status.HTTP_200_OK,
-    }
-
-
-async def validate_code(client, data):
-    """
-    validate the code (OTP) & return user details and if two factor authenticated
-    is enabled, it will ask for password.
-    """
     try:
-        user_details = await client.sign_in(
-            phone=data[PHONE],
-            code=data[CODE],
-            phone_code_hash=data[PHONE_CODE_HASH],
-        )
-    except SessionPasswordNeededError:
-        return {
-            DATA: {MESSAGE: PASSWORD_REQUIRED, TWO_FA_ENABLED: True, IS_SUCCESS: True},
-            STATUS: status.HTTP_200_OK,
-        }
-    except (PhoneCodeInvalidError, PhoneCodeExpiredError):
-        return {
-            DATA: {MESSAGE: INVALID_CODE, IS_SUCCESS: False},
-            STATUS: status.HTTP_400_BAD_REQUEST,
-        }
-    await client.disconnect()
-    return ok_response(user_details, data)
+        bot = TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH)
+        bot = await bot.start(bot_token=BOT_TOKEN)
+        yield bot
+    finally:
+        await bot.disconnect()
 
 
-async def logout(phone):
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            await client.log_out()
-    return {
-        DATA: {MESSAGE: LOGOUT, IS_SUCCESS: True},
-        STATUS: status.HTTP_200_OK,
-    }
-
-
-async def send_msg(phone, data):
+@exception
+async def send_msg(data):
     """
     Sends the message to the particular chat
     """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            async with await start_bot_client() as bot:
-                current_bot = await bot.get_me()
-                data["sender"] = current_bot.id
-                serializer = MessageSerializer(data=data)
-                if serializer.is_valid():
-                    serializer.save()
-                    access_hash = Individual.objects.get(
-                        id=data[INDIVIDUAL]
-                    ).access_hash
-                    receiver = InputPeerUser(int(data[INDIVIDUAL]), int(access_hash))
-                    msg_inst = await bot.send_message(receiver, data[MESSAGE])
-                    sent_msg = serializer.data
-                else:
-                    receiver = await client.get_entity(int(data[INDIVIDUAL]))
-                    msg_inst = await bot.send_message(receiver, data[MESSAGE])
-                    sent_msg = {
-                        "id": msg_inst.id,
-                        "sender": current_bot.username,
-                        "date": msg_inst.date,
-                    }
+    async with start_bot_client() as bot:
+        current_bot = await bot.get_me()
+        data[SENDER_ID] = current_bot.id
+        data[SENDER_NAME] = current_bot.first_name
 
-            return {
-                DATA: {MESSAGE: sent_msg, IS_SUCCESS: True},
-                STATUS: status.HTTP_200_OK,
-            }
-        return NOT_AUTHORIZED
+        if data[FROM_GROUP]:
+            receiver = await bot.get_entity(PeerChat(int(data[ROOM_ID])))
+        else:
+            access_hash = Individual.objects.get(id=data[ROOM_ID]).access_hash
+            receiver = InputPeerUser(int(data[ROOM_ID]), int(access_hash))
+        msg_inst = await bot.send_message(receiver, data[MESSAGE])
+        data[TELEGRAM_MSG_ID] = msg_inst.id
+        serializer = MessageSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            increment_messages_count(serializer)
+            # incrementing the unread count for all the admin users
+            UserChatUnread.objects.filter(room_id=int(data[ROOM_ID])).update(
+                unread_count=F("unread_count") + 1
+            )
+
+            channel_layer = get_channel_layer()
+            await channel_layer.group_send(
+                WEBSOCKET_ROOM_NAME, {"type": "chat_message", MESSAGE: serializer.data}
+            )
+
+    return {
+        DATA: {MESSAGE: serializer.data, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
 
 
-async def get_dialog(phone):
+@exception
+async def get_dialog(user_id):
     """
     Returns dialogs if the user is authorized
     """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            chats = ChatBot.objects.all()
-            chats_serializer = ChatBotSerializer(chats, many=True)
-            return {
-                DATA: {"dialogs": chats_serializer.data, IS_SUCCESS: True},
-                STATUS: status.HTTP_200_OK,
-            }
-        return NOT_AUTHORIZED
+    chats = ChatBot.objects.all()
+    chats_serializer = ChatBotSerializer(chats, many=True)
+    chat_unread = UserChatUnread.objects.filter(user_id=user_id)
+
+    # Adding Unread count with each chat
+    for chat in chats_serializer.data:
+        chat["chat"]["unread_count"] = chat_unread.filter(room_id=chat["chat"]["id"])[
+            0
+        ].unread_count
+        for indi in chat["bot"]["bot_individuals"]:
+            indi["individual"]["unread_count"] = chat_unread.filter(
+                room_id=indi["individual"]["id"]
+            )[0].unread_count
+
+    return {
+        DATA: {"dialogs": chats_serializer.data, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
 
 
-async def get_individual_msg(phone, individual_id, limit, offset):
+@exception
+async def get_messages(room_id, user_id, limit, offset):
     """
-    Returns private chat messages if the user is authorized
+    Returns the messages
     """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            if limit and offset:
-                data = Message.objects.filter(individual=individual_id).order_by(
-                    "-date"
-                )[int(offset) : int(offset) + int(limit)]
-            elif limit:
-                data = Message.objects.filter(individual=individual_id).order_by(
-                    "-date"
-                )[: int(limit)]
-            else:
-                data = Message.objects.filter(individual=individual_id).order_by(
-                    "-date"
-                )
-            serializer = MessageSerializer(data, many=True)
-            return {
-                DATA: {"messages": serializer.data[::-1], IS_SUCCESS: True},
-                STATUS: status.HTTP_200_OK,
-            }
-        return NOT_AUTHORIZED
+    if limit and offset:
+        data = Message.objects.filter(room_id=room_id).order_by("-date")[
+            int(offset) : int(offset) + int(limit)
+        ]
+    elif limit:
+        data = Message.objects.filter(room_id=room_id).order_by("-date")[: int(limit)]
+    else:
+        data = Message.objects.filter(room_id=room_id).order_by("-date")
+    serializer = MessageSerializer(data, many=True)
 
+    if data and data[0].from_group:
+        individuals_id = extract_individual_ids(room_id)
+        for msg in serializer.data:
+            if msg[SENDER_ID] in individuals_id:
+                msg["is_link"] = True
 
-async def get_chat_msg(phone, chat_id, limit, offset):
-    """
-    Returns group chat messages if the user is authorized
-    """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            await client.get_dialogs(limit=DIALOGS_LIMIT)
-            msgs = []
-            individuals_id = extract_individual_ids(chat_id)
-            flagged_msgs_id = extract_flagged_msgs_is(chat_id)
+    # Resetting the unread count to 0 for the logged in admin user.
+    UserChatUnread.objects.filter(user_id=user_id, room_id=room_id).update(
+        unread_count=0
+    )
 
-            try:
-                if limit and offset:
-                    async for message in client.iter_messages(
-                        chat_id, limit=int(limit), offset_id=int(offset)
-                    ):
-                        extract_messages(message, msgs, individuals_id, flagged_msgs_id)
-                elif limit:
-                    async for message in client.iter_messages(
-                        chat_id, limit=int(limit)
-                    ):
-                        extract_messages(message, msgs, individuals_id, flagged_msgs_id)
-                else:
-                    async for message in client.iter_messages(chat_id):
-                        extract_messages(message, msgs, individuals_id, flagged_msgs_id)
-            except ValueError:
-                return {
-                    DATA: {
-                        MESSAGE: GROUP_MSGS_FORBIDDEN,
-                        IS_SUCCESS: False,
-                    },
-                    STATUS: status.HTTP_403_FORBIDDEN,
-                }
-            return {
-                DATA: {"messages": msgs[::-1], IS_SUCCESS: True},
-                STATUS: status.HTTP_200_OK,
-            }
-        return NOT_AUTHORIZED
-
-
-def extract_messages(message, msgs, individuals_id, flagged_msgs_id):
-    if message.message:
-        msg = {
-            "id": message.id,
-            "sender": message.sender.first_name,
-            MESSAGE: message.text,
-            "date": message.date,
-            "is_link": False,
-            "is_flagged": False,
-        }
-        if message.sender.id in individuals_id:
-            msg["is_link"] = True
-        if message.id in flagged_msgs_id:
-            msg["is_flagged"] = True
-        msgs.append(msg)
+    return {
+        DATA: {"messages": serializer.data[::-1], IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
 
 
 def extract_individual_ids(chat_id):
@@ -305,95 +175,242 @@ def extract_individual_ids(chat_id):
     return individuals_id
 
 
-def extract_flagged_msgs_is(chat_id):
-    # Extracting flagged message's id of a particular chat
-    flagged_msgs_id = []
-    flagged_msgs = FlaggedMessage.objects.filter(room_id=chat_id)
-    for message in flagged_msgs:
-        flagged_msgs_id.append(message.message_id)
-    return flagged_msgs_id
-
-
-async def get_flagged_messages(phone, limit, offset):
+@exception
+async def get_flagged_messages(limit, offset):
     """
     Retrieve flagged messages
     """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            if limit and offset:
-                data = FlaggedMessage.objects.all().order_by("-date")[
-                    int(offset) : int(offset) + int(limit)
-                ]
-            elif limit:
-                data = FlaggedMessage.objects.all().order_by("-date")[: int(limit)]
-            else:
-                data = FlaggedMessage.objects.all().order_by("-date")
-            serializer = FlaggedMessageSerializer(data, many=True)
-            return {
-                DATA: {FLAGGED_MESSAGE: serializer.data[::-1], IS_SUCCESS: True},
-                STATUS: status.HTTP_200_OK,
-            }
-        return NOT_AUTHORIZED
+    if limit and offset:
+        data = FlaggedMessage.objects.all().order_by("-date")[
+            int(offset) : int(offset) + int(limit)
+        ]
+    elif limit:
+        data = FlaggedMessage.objects.all().order_by("-date")[: int(limit)]
+    else:
+        data = FlaggedMessage.objects.all().order_by("-date")
+    serializer = FlaggedMessageSerializer(data, many=True)
+    return {
+        DATA: {FLAGGED_MESSAGE: serializer.data[::-1], IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
 
 
-async def create_flagged_message(phone, data):
+@exception
+async def create_flagged_message(data):
     """
     Saves the flagged message
     """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            serializer = FlaggedMessageSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
+    serializer = FlaggedMessageSerializer(data=data)
+    if serializer.is_valid():
+        serializer.create(validated_data=data)
 
-                # If the message is from individual chat then flag it
-                if data["is_group"] == False:
-                    try:
-                        message = Message.objects.get(pk=data["message_id"])
-                        message.is_flagged = True
-                        message.save()
-                    except Message.DoesNotExist as does_not_exist:
-                        logger.exception(does_not_exist)
-                result = {
-                    DATA: {FLAGGED_MESSAGE: serializer.data, IS_SUCCESS: True},
-                    STATUS: status.HTTP_200_OK,
-                }
-            else:
-                result = {
-                    DATA: {MESSAGE: serializer.errors, IS_SUCCESS: False},
-                    STATUS: status.HTTP_400_BAD_REQUEST,
-                }
-
-            return result
-        return NOT_AUTHORIZED
+    message = Message.objects.get(pk=data["message"])
+    message.is_flagged = True
+    message.save()
+    return {
+        DATA: {FLAGGED_MESSAGE: data, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
 
 
-async def delete_flagged_message(phone, id):
+@exception
+async def delete_flagged_message(id):
     """
     Deletes the flagged message
     """
-    async with client_context(phone) as client:
-        if await client.is_user_authorized():
-            try:
-                flagged_message = FlaggedMessage.objects.get(pk=id)
-            except FlaggedMessage.DoesNotExist:
-                return {
-                    DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
-                    STATUS: status.HTTP_404_NOT_FOUND,
-                }
+    try:
+        flagged_message = FlaggedMessage.objects.get(pk=id)
+    except FlaggedMessage.DoesNotExist:
+        return {
+            DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
+            STATUS: status.HTTP_404_NOT_FOUND,
+        }
 
-            if flagged_message.delete():
-                if flagged_message.is_group == False:
-                    message = Message.objects.get(pk=flagged_message.message_id)
-                    message.is_flagged = False
-                    message.save()
+    if flagged_message.delete():
+        message = Message.objects.get(pk=flagged_message.message.id)
+        message.is_flagged = False
+        message.save()
+        return {
+            DATA: {MESSAGE: DELETE_SUCCESS, IS_SUCCESS: True},
+            STATUS: status.HTTP_200_OK,
+        }
+    return {
+        DATA: {MESSAGE: DELETE_FAIL, IS_SUCCESS: False},
+        STATUS: status.HTTP_400_BAD_REQUEST,
+    }
 
-                return {
-                    DATA: {MESSAGE: DELETE_SUCCESS, IS_SUCCESS: True},
-                    STATUS: status.HTTP_200_OK,
-                }
+
+@exception
+async def schedule_messages(file):
+    """
+    Schedule the messages in bulk and
+    returns erroneous sheets and rows if any
+    """
+    book = tablib.Databook()
+    book.load(file, "xlsx")
+    sheets = json.loads(book.export("json"))
+    erroneous_rows = {}
+    erroneous_sheets = []
+    for sheet in sheets:
+        try:
+            receiver_id = int(sheet["title"].split(",")[1])
+            chat = Chat.objects.get(id=receiver_id)
+        except (Chat.DoesNotExist, ValueError):
+            erroneous_sheets.append(sheet["title"])
+            continue
+
+        start_date_time = parse(f"{chat.start_date} {chat.start_time}")
+
+        for ind, row in enumerate(sheet["data"]):
+            if row["Days"] is not None and row["Message"] is not None:
+                schedule, created = ClockedSchedule.objects.get_or_create(
+                    clocked_time=start_date_time + timedelta(days=row["Days"]),
+                )
+                PeriodicTask.objects.create(
+                    clocked=schedule,
+                    name=uuid.uuid4(),
+                    task="mpact.tasks.send_msgs",
+                    args=json.dumps([receiver_id, row["Message"]]),
+                    one_off=True,
+                )
+            else:
+                if sheet["title"] in erroneous_rows:
+                    erroneous_rows[sheet["title"]].append(ind + 1)
+                else:
+                    erroneous_rows[sheet["title"]] = [ind + 1]
+    return {
+        DATA: {
+            MESSAGE: MESSAGE_SCHEDULED,
+            ERRONEOUS_ROWS: erroneous_rows,
+            ERRONEOUS_SHEETS: erroneous_sheets,
+            IS_SUCCESS: True,
+        },
+        STATUS: status.HTTP_200_OK,
+    }
+
+
+@exception
+async def download_schedule_messages_file():
+    """
+    Downloads the sample schedule message file
+    with the sheets for each group chat.
+    """
+    headers = ["Days", "Message", "Comment"]
+    sample_xlsx_file = tablib.Databook()
+    group_chats = Chat.objects.all()
+
+    for chat in group_chats:
+        sheet = tablib.Dataset(headers=headers)
+        sheet.title = f"{chat.title},{chat.id}"
+        sample_xlsx_file.add_sheet(sheet)
+    with open("schedule_message_format.xlsx", "wb") as xlsx:
+        xlsx.write(sample_xlsx_file.export("xlsx"))
+
+    return {
+        DATA: {MESSAGE: FILE_DOWNLOADED, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
+
+
+@exception
+async def edit_message(room_id, data):
+    """
+    Returns the updated message
+    """
+    async with start_bot_client() as bot:
+        msg_inst = Message.objects.get(id=data["message_id"])
+        if msg_inst.from_group:
+            receiver = await bot.get_entity(PeerChat(room_id))
+        else:
+            receiver = await bot.get_entity(PeerUser(room_id))
+
+        msg = await bot.get_messages(receiver, ids=msg_inst.telegram_msg_id)
+        try:
+            await bot.edit_message(msg, data[MESSAGE])
+        except MessageIdInvalidError:
+            logger.exception(exception)
             return {
-                DATA: {MESSAGE: DELETE_FAIL, IS_SUCCESS: False},
+                DATA: {MESSAGE: EDIT_FAIL, IS_SUCCESS: False},
                 STATUS: status.HTTP_400_BAD_REQUEST,
             }
-        return NOT_AUTHORIZED
+        msg_inst.message = data[MESSAGE]
+        msg_inst.save()
+
+    return {
+        DATA: {MESSAGE: data, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
+
+
+@exception
+async def export_messages():
+    """
+    Exports all the messages in csv and
+    json[contains model name & pk, can be used as fixtures] format.
+    """
+    with open("messages.json", "w+") as msg_json:
+        call_command("dumpdata", "mpact.message", stdout=msg_json, indent=1)
+        msg_json.seek(0)  # move the pointer to 0th char
+        data = json.load(msg_json)
+
+    fieldnames = data[0]["fields"].keys()
+    records = []
+    for d in data:
+        records.append(d["fields"])  # excluding model name and primary key
+
+    with open("messages.csv", "w", newline="") as msg_csv:
+        writer = csv.DictWriter(msg_csv, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(records)
+    return {
+        DATA: {MESSAGE: FILE_DOWNLOADED, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
+
+
+@exception
+async def get_individual_details(individual_id):
+    """
+    Return the individual details
+    """
+    try:
+        individual_details = Individual.objects.get(id=individual_id)
+    except Individual.DoesNotExist:
+        return {
+            DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
+            STATUS: status.HTTP_404_NOT_FOUND,
+        }
+
+    serializer = IndividualDetailSerializer(individual_details)
+    return {
+        DATA: {"individual_details": serializer.data, IS_SUCCESS: True},
+        STATUS: status.HTTP_200_OK,
+    }
+
+
+@exception
+async def update_individual_details(individual_id, data):
+    """
+    Return the updated individual details
+    """
+    try:
+        individual_details = Individual.objects.get(id=individual_id)
+    except Individual.DoesNotExist:
+        return {
+            DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
+            STATUS: status.HTTP_404_NOT_FOUND,
+        }
+
+    serializer = IndividualDetailSerializer(individual_details, data=data)
+    if serializer.is_valid():
+        serializer.save()
+        result = {
+            DATA: {"individual_details": serializer.data, IS_SUCCESS: True},
+            STATUS: status.HTTP_200_OK,
+        }
+    else:
+        result = {
+            DATA: {MESSAGE: serializer.errors, IS_SUCCESS: False},
+            STATUS: status.HTTP_400_BAD_REQUEST,
+        }
+    return result

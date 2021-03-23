@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
 from django.db import models
 from django.forms import ChoiceField
 from django_celery_beat.admin import PeriodicTask, PeriodicTaskAdmin, PeriodicTaskForm
@@ -10,10 +8,10 @@ from .models import (
     BotIndividual,
     Chat,
     ChatBot,
+    FlaggedMessage,
     Individual,
     Message,
-    Profile,
-    FlaggedMessage,
+    UserChatUnread,
 )
 
 admin.site.register(Chat)
@@ -23,35 +21,7 @@ admin.site.register(ChatBot)
 admin.site.register(BotIndividual)
 admin.site.register(Message)
 admin.site.register(FlaggedMessage)
-
-
-class UserProfileInline(admin.StackedInline):
-    model = Profile
-    can_delete = False
-
-
-admin.site.unregister(User)
-
-
-@admin.register(User)
-class UserAdmin(BaseUserAdmin):
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": (
-                    "username",
-                    "email",
-                    "first_name",
-                    "last_name",
-                    "password1",
-                    "password2",
-                ),
-            },
-        ),
-    )
-    inlines = (UserProfileInline,)
+admin.site.register(UserChatUnread)
 
 
 class CustomPeriodicTask(PeriodicTask):
@@ -77,7 +47,7 @@ class CustomPeriodicForm(PeriodicTaskForm):
 
         groups = [(c.id, c.title) for c in Chat.objects.all()]
         individuals = [(i.id, i.first_name) for i in Individual.objects.all()]
-        self.fields['args'].choices = [
+        self.fields["args"].choices = [
             ("chat", groups),
             ("individual", individuals),
         ]

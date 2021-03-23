@@ -2,7 +2,7 @@
   <div class='side-nav h-100'>
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
-      <div class='text-truncate username text-left'>{{ username }}</div>
+      <div class='text-truncate username text-left capitalize'>{{ username }}</div>
       <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Bookmarks'></div>
       <div class='logout h-100' @click='logout()' title='logout'></div>
     </div>
@@ -11,11 +11,12 @@
         <div
           :class="['w-100 bg-telegram__primary text-white d-flex justify-content-between', { 'active-channel': activeChannel === i }]">
           <div class='btn channel-name text-left box-shadow__none px-0 border-0 rounded-0'
-          @click="setActiveChannel(i); $emit('getGroupMessages', {
+          @click="setActiveChannel(i, mainObj.chat.id); $emit('getGroupMessages', {
               roomName: mainObj.chat.title,
               roomId: mainObj.chat.id
             })" :data-id='mainObj.chat.id'>
-            <span class='px-4 text-white'>{{ mainObj.chat.title }}</span>
+            <span class='px-4 text-white'>{{ mainObj.chat.title }} </span>
+            <span class='badge alert-info' v-if='unread_messages[mainObj.chat.id]'>{{ unread_messages[mainObj.chat.id]}}</span>
           </div>
           <button class='btn expand-icon box-shadow__none border-0 rounded-0 text-white' type='button'
             :data-id='mainObj.chat.id' :data-target="'#demo-' + i" data-toggle='collapse'>
@@ -25,13 +26,14 @@
         <div class='collapse border-0 bg-white cursor__pointer' :id="'demo-' + i">
           <div v-for='(subObj, j) in mainObj.bot.bot_individuals' :key='j' :data-id='subObj.individual.id'
             :class="['text-telegram__primary', 'pt-2', 'pb-1', 'pl-5', { 'active-chat': activeChat === (i + j) }]"
-            @click="setActiveChannel(i); setActiveChat(i + j);
+            @click="setActiveChannel(i, subObj.individual.id); setActiveChat(i + j);
             $emit('getIndividualMessages', {
               roomName: subObj.individual.first_name,
               roomId: subObj.individual.id,
               groupId: mainObj.chat.id
             })">
             {{ subObj.individual.first_name }}
+            <span class='badge alert-info' v-if='unread_messages[subObj.individual.id]'>{{ unread_messages[subObj.individual.id]}}</span>
           </div>
         </div>
       </div>
@@ -39,6 +41,8 @@
   </div>
 </template>
 <script>
+import { clearStorage } from '../utils/helpers';
+ 
 export default {
   name: 'side-nav',
   props: ['username', 'contacts'],
@@ -48,10 +52,20 @@ export default {
       activeChat: null,
     };
   },
+  computed: {
+    unread_messages: {
+      get() {
+        return this.$store.state.unread_messages
+
+      },
+    },
+
+  },
   methods: {
-    setActiveChannel(i) {
+    setActiveChannel(i, chatId) {
       this.activeChannel = i;
       this.activeChat = null;
+      this.$store.dispatch('update_active_channel', chatId)
     },
     setActiveChat(i) {
       this.activeChat = i;
@@ -62,9 +76,10 @@ export default {
     },
     async logout() {
       try {
-        await this.$http.get('/logout');
-        localStorage.removeItem('username');
-        localStorage.removeItem('Token');
+        await this.$http.post('logout', {
+          refresh_token: `${localStorage.getItem('refreshToken')}`,
+        });
+        clearStorage();
         this.$router.push('/login');
       } catch (err) {
         console.error(err);
@@ -75,6 +90,9 @@ export default {
 </script>
 
 <style scoped>
+  .capitalize{
+    text-transform: capitalize;
+  }
   .side-nav {
     background: var(--bg-light-gray);
     box-shadow: 1px 0px 8px #000;

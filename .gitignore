@@ -136,6 +136,8 @@ dist
 *.pyc
 .vscode
 *.session
+*.session-journal
 manage-dev
 bot.out
 dump.rdb
+.idea

@@ -9,7 +9,7 @@
       <div class='col-10 p-0'>
         <chat-window height='100vh' class='chat-widget-1' :currentUserId='currentUserId' :rooms='rooms'
           :messages='messages' :single-room='hideSideNav' :messages-loaded='messagesLoaded' :styles='styles'
-          :message-actions='messageActions' @fetch-messages='loadOldMessages($event)' :showNewMessagesDivider='showNewMessagesDivider'
+          :message-actions='messageActions' @fetch-messages='messages.length>=50 ? loadOldMessages($event) : null' :showNewMessagesDivider='showNewMessagesDivider'
           @send-message='sendMessage($event)' @message-action-handler='messageActionHandler($event)'>
           <template #dropdown-icon>
             <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
@@ -48,7 +48,6 @@ export default {
       toastMessage: '',
       showToastError: false,
       rooms: [],
-      messages: [],
       currentUserId: 1,
       contacts: [],
       messagesLoaded: false,
@@ -85,9 +84,22 @@ export default {
           dropdownMessageBackground: 'transparent',
         },
       },
+      botId: '',
     };
   },
+  computed: {
+    messages: {
+      get() {
+        return this.$store.state.messages
+
+      },
+      set(payload) {
+        this.$store.dispatch('update_messages', payload)
+      }
+    },
+  },
   async mounted() {
+    this.resetChatWidget();
     await this.getContacts();
     this.username = localStorage.getItem('username') || '';
     this.selectedRoom = this.$route.query.roomId || '';
@@ -103,6 +115,9 @@ export default {
       groupButton.click();
       selectedDiv.click();
     }
+  },
+  destroyed(){
+    this.resetChatWidget();
   },
   methods: {
     async messageActionHandler({ roomId, action, message }) {
@@ -132,6 +147,15 @@ export default {
       try {
         const data = await this.$http.get('/dialogs');
         this.contacts = data.data.dialogs;
+        this.botId = this.contacts[0].bot.id
+        const unreadMessagesObj = {}
+        this.contacts.forEach((oneGroup) => {
+          oneGroup.bot.bot_individuals.forEach((oneIndividual) => {
+            unreadMessagesObj[oneIndividual.individual.id] = oneIndividual.individual.unread_count;
+        });
+        unreadMessagesObj[oneGroup.chat.id] = oneGroup.chat.unread_count;
+        })
+        this.$store.dispatch('update_unread_messages', unreadMessagesObj)
       } catch (err) {
         console.error(err);
       }
@@ -139,36 +163,15 @@ export default {
     async flagMessage({ roomId, message }) {
       try {
         const params = {
-          roomId,
-          messageId: message._id,
-          firstName: message.sender_id,
-          message: message.content,
+          message: message._id,
           groupId: message.groupId || this.groupId,
-          isGroup: this.groupView,
         };
-        if (!params.isGroup) {
-          const senderDetails = this.contacts.find(
-            (contact) => contact.chat.id === params.groupId,
-          );
-          if (senderDetails) {
-            if (senderDetails.bot.id === message.sender_id) {
-              params.firstName = senderDetails.bot.username;
-            } else {
-              const userDetails = senderDetails.bot.bot_individuals.find(
-                (individual) => individual.individual.id === message.sender_id,
-              );
-              if (userDetails) {
-                params.firstName = userDetails.individual.first_name;
-              }
-            }
-          }
-        }
         const trimmedMessage = message.content.trim().length > 25 ? `${message.content.trim().slice(0, 25)}...` : message.content.trim();
         if (!message.isFlagged) {
           const result = await MessageService.flagMessage(params);
           if (result && result.data.is_success) {
             const messageIndex = this.messages.findIndex(
-              (m) => m._id === params.messageId,
+              (m) => m._id === params.message,
             );
             Vue.set(this.messages, messageIndex, {
               ...message,
@@ -248,23 +251,16 @@ export default {
           limit,
           lazy: true,
         };
-        if (groupView && lastMessage) {
-          params.offset = lastMessage.id;
-        } else {
-          this.offset += 50;
-          params.offset = this.offset;
-        }
-        if (groupView) {
-          const data = await MessageService.fetchGroupMessages(params);
-          if (data.data.is_success) {
-            newMessages = data.data.messages;
-          }
-        } else {
+        this.offset += 50;
+        params.offset = this.offset;
+        try{
           const data = await MessageService.getIndividualMessages(params);
           if (data.data.is_success) {
             newMessages = data.data.messages;
           }
-        }
+          }catch(err){
+          console.log(err.response);
+          }
         if (!newMessages.length) {
           this.messagesLoaded = true;
           return;
@@ -273,22 +269,21 @@ export default {
         const formattedRoomStructure = [];
         const users = [];
         newMessages.forEach((d) => {
-          if (!groupView) {
-            if (d.individual !== d.sender) {
-              this.currentUserId = d.sender;
-            }
+        if (d.sender_id === this.botId) {
+            this.currentUserId = d.sender_id;
           }
           users.push({
             _id: d.id,
-            username: d.sender,
+            username: d.sender_name,
           });
           formattedMessages.push({
             _id: d.id,
             content: d.message || '',
-            sender_id: d.sender,
+            sender_id: d.sender_id,
             date: dateHelpers.convertDate(d.date),
             timestamp: dateHelpers.convertTime(d.date),
             isFlagged: d.is_flagged,
+            username: d.sender_name,
             saved: false,
             groupId: this.groupId,
           });
@@ -334,22 +329,28 @@ export default {
           this.groupView = false;
           const formattedMessages = [];
           const formattedRoomStructure = [];
+          const users = [];
           this.currentUserId = roomId;
           const newMessages = data.data.messages;
           if (newMessages.length < 50) {
             this.messagesLoaded = true;
           }
           newMessages.forEach((d) => {
-            if (d.individual !== d.sender) {
-              this.currentUserId = d.sender;
+            if (d.sender_id === this.botId) {
+              this.currentUserId = d.sender_id;
             }
+            users.push({
+            _id: d.id,
+            username: d.sender_name,
+            });
             formattedMessages.push({
               _id: d.id,
               content: d.message || '',
-              sender_id: d.sender,
+              sender_id: d.sender_id,
               date: dateHelpers.convertDate(d.date),
               timestamp: dateHelpers.convertTime(d.date),
               isFlagged: d.is_flagged,
+              username: d.sender_name,
               saved: false,
               groupId,
             });
@@ -357,7 +358,7 @@ export default {
           formattedRoomStructure.push({
             roomId,
             roomName,
-            users: [],
+            users,
           });
           this.messages = formattedMessages;
           this.rooms = formattedRoomStructure;
@@ -385,9 +386,8 @@ export default {
           roomId,
           limit,
         };
-        if (this.messages.length && lazy && lastMessage) {
-          params.offset = lastMessage.id;
-        }
+        this.offset = 0;
+        params.offset = this.offset;
         this.resetChatWidget();
         const data = await MessageService.fetchGroupMessages(params);
         if (data && data.data.is_success) {
@@ -400,18 +400,18 @@ export default {
             this.messagesLoaded = true;
           }
           newMessages.forEach((d) => {
-            if (d.individual !== d.sender) {
-              this.currentUserId = d.sender;
+            if (d.sender_id === this.botId) {
+              this.currentUserId = d.sender_id;
             }
-            this.roomName = d.sender;
+            this.roomName = d.sender_name;
             userList.push({
               _id: d.id,
-              username: d.sender,
+              username: d.sender_name,
             });
             formattedMessages.push({
               _id: d.id || '',
               content: d.message || '',
-              sender_id: d.sender || '',
+              sender_id: d.sender_id || '',
               date: dateHelpers.convertDate(d.date),
               timestamp: dateHelpers.convertTime(d.date),
               username: this.roomName,
@@ -433,18 +433,15 @@ export default {
         console.error(err);
       }
     },
-    async sendMessage({
-      roomId,
-      content,
-      file,
-      replyMessage,
-    }) {
+    async sendMessage({ roomId, content, file, replyMessage }) {
       try {
+        const { groupView } = this;
         const response = await MessageService.addNewMessage({
           roomId,
           content,
           file,
           replyMessage,
+          groupView,
         });
         if (response && response.status === 200) {
           this.messagesLoaded = false;
@@ -468,6 +465,7 @@ export default {
       }
     },
     resetChatWidget() {
+      this.messages = []
       this.rooms.length = 0;
       this.messages.length = 0;
       this.messagesLoaded = false;
