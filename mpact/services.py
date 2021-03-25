@@ -64,7 +64,7 @@ async def start_bot_client() -> TelegramClient:
     Returns a TelegramClient for bot
     """
     try:
-        bot = TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH)
+        bot = TelegramClient("bot-django", TELEGRAM_API_ID, TELEGRAM_API_HASH)
         bot = await bot.start(bot_token=BOT_TOKEN)
         yield bot
     finally:
