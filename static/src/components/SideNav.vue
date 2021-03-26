@@ -3,8 +3,8 @@
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
-      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Bookmarks'></div>
-      <div class='logout h-100' @click='logout()' title='logout'></div>
+      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
+      <div class='logout h-100' @click='logout()' title='Log out'></div>
     </div>
     <div class='chat-contacts'>
       <div class='side-nav-row mt-2' v-for='(mainObj, i) in contacts' :key='i'>
