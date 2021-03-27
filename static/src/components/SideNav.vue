@@ -4,6 +4,7 @@
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
       <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
+      <div class='download h-100' @click='exportMessages()' title='Export'></div>
       <div class='logout h-100' @click='logout()' title='Log out'></div>
     </div>
     <div class='chat-contacts'>
@@ -73,6 +74,9 @@ export default {
     async navigateToBookmarks() {
       const route = this.$router.resolve({ path: '/flagged-messages' });
       window.open(route.href, '_self');
+    },
+    async exportMessages() {
+      // navigate to /api/messages.csv
     },
     async logout() {
       try {
