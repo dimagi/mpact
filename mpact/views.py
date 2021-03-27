@@ -161,14 +161,6 @@ def export_messages(request):
         return response
 
 
-class ExportMessages(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        result = new_or_current_event_loop().run_until_complete(export_messages())
-        return Response(result[DATA], status=result[STATUS])
-
-
 class IndividualDetails(APIView):
     permission_classes = (IsAuthenticated,)
 
