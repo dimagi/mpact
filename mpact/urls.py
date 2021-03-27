@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    CustomTokenObtainPairView,
     Dialog,
     ExportMessages,
     FlagMessage,
@@ -11,6 +12,7 @@ from .views import (
     SendMessage,
     Logout,
 )
+from rest_framework_simplejwt import views as jwt_views
 
 urlpatterns = [
     path("messages", SendMessage.as_view()),
@@ -21,5 +23,9 @@ urlpatterns = [
     path("schedule_messages", ScheduleMessages.as_view()),
     path("export_messages", ExportMessages.as_view()),
     path("individuals/<int:individual_id>", IndividualDetails.as_view()),
+
+    path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
+
     path('logout', Logout.as_view()),
 ]
