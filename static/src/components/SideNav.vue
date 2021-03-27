@@ -3,8 +3,8 @@
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
-      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
       <div class='download h-100' @click='exportMessages()' title='Export'></div>
+      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
       <div class='logout h-100' @click='logout()' title='Log out'></div>
     </div>
     <div class='chat-contacts'>
@@ -138,6 +138,15 @@ export default {
 
   .username {
     width: 85%;
+  }
+
+  .download {
+    width: 15%;
+    background-size: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url('../assets/download.svg');
+    cursor: pointer;
   }
 
   .bookmarks {

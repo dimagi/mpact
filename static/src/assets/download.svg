@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="64"
+   height="64"
+   viewBox="0 0 64 64"
+   id="svg6085"
+   version="1.1"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="download.svg">
+  <defs
+     id="defs6087" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="8"
+     inkscape:cx="15.375"
+     inkscape:cy="27.726751"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="1920"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     units="px">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4625"
+       spacingx="1"
+       spacingy="1"
+       snapvisiblegridlinesonly="false" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata6090">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Laag 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-992.36221)">
+    <path
+       style="opacity:1;fill:#6c5353;fill-opacity:0.94509804;fill-rule:nonzero;stroke:none;stroke-width:1.58158517;stroke-miterlimit:4;stroke-dasharray:1.58158517, 3.16317034;stroke-dashoffset:0;stroke-opacity:1"
+       d=""
+       id="path6839"
+       inkscape:connector-curvature="0"
+       transform="translate(0,960.23623)" />
+    <g
+       transform="matrix(1.9405193,0,0,1.6402328,2.6296078,999.13928)"
+       id="g3"
+       style="opacity:1;fill:#ffffff;fill-opacity:1"
+       inkscape:transform-center-x="-305.06607"
+       inkscape:transform-center-y="48.487322">
+      <path
+         inkscape:connector-curvature="0"
+         d="m 25.462,19.105 v 6.848 H 4.515 V 19.105 H 0.489 v 8.861 c 0,1.111 0.9,2.012 2.016,2.012 h 24.967 c 1.115,0 2.016,-0.9 2.016,-2.012 v -8.861 z"
+         id="path5"
+         style="fill:#ffffff;fill-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         d="M 14.62,18.426 8.856,11.461 c 0,0 -0.877,-0.828 0.074,-0.828 0.951,0 3.248,0 3.248,0 0,0 0,-0.557 0,-1.416 0,-2.449 0,-6.906 0,-8.723 0,0 -0.129,-0.494 0.615,-0.494 0.75,0 4.035,0 4.572,0 0.536,0 0.524,0.416 0.524,0.416 0,1.762 0,6.373 0,8.742 0,0.768 0,1.266 0,1.266 0,0 1.842,0 2.998,0 1.154,0 0.285,0.867 0.285,0.867 0,0 -4.904,6.51 -5.588,7.193 -0.492,0.495 -0.964,-0.058 -0.964,-0.058 z"
+         id="path7"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g9"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g11"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g13"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g15"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g17"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g19"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g21"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g23"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g25"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g27"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g29"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g31"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g33"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g35"
+         style="fill:#ffffff;fill-opacity:1" />
+      <g
+         id="g37"
+         style="fill:#ffffff;fill-opacity:1" />
+    </g>
+  </g>
+</svg>
