@@ -66,18 +66,8 @@ export default {
           title: 'Flag Message',
         },
         {
-          name: 'editMessage',
-          title: 'Edit Message',
-          onlyMe: true,
-        },
-        {
           name: 'replyMessage',
           title: 'Reply',
-        },
-        {
-          name: 'deleteMessage',
-          title: 'Delete Message',
-          onlyMe: true,
         },
       ],
       styles: {
