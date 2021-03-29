@@ -44,6 +44,7 @@ new Vue({
       newMessage.content = newMessage.message
       newMessage.timestamp = dateHelpers.convertTime(newMessage.date)
       newMessage.date = dateHelpers.convertDate(newMessage.date)
+      newMessage.username = newMessage.sender_name
       currentMessages.push(newMessage)
       const activeChannel = this.$store.state.active_channel
       if (activeChannel !== newMessage.room_id) {
