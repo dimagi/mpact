@@ -43,7 +43,8 @@
 </template>
 <script>
 import { clearStorage } from '../utils/helpers';
- 
+import Api from '../services/Api';
+
 export default {
   name: 'side-nav',
   props: ['username', 'contacts'],
@@ -76,7 +77,18 @@ export default {
       window.open(route.href, '_self');
     },
     async exportMessages() {
-      // navigate to /api/messages.csv
+      try {
+        const response = await Api.get('/messages.csv');
+        const blob = new Blob([response.data], { type: 'application/csv' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = 'messages.csv'
+        link.click()
+        URL.revokeObjectURL(link.href)
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
     },
     async logout() {
       try {
