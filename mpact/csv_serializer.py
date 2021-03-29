@@ -82,7 +82,7 @@ class Serializer(PythonSerializer):
                 pk, model = smart_text(pk), smart_text(model)
                 row = [pk, model] + [process_item(v) for v in fields.values()]
                 if write_header:
-                    header = ['pk', 'model'] + fields.keys()
+                    header = ['pk', 'model'] + list(fields.keys())
                     writer.writerow(header)
                     write_header = False
                 writer.writerow(row)
