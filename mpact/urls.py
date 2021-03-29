@@ -11,7 +11,7 @@ from .views import (
     Logout,
     ScheduleMessages,
     SendMessage,
-    export_messages,
+    ExportMessages,
 )
 
 urlpatterns = [
@@ -21,7 +21,7 @@ urlpatterns = [
     path("flaggedmessages", FlagMessage.as_view()),
     path("flaggedmessages/<int:id>", FlagMessageDelete.as_view()),
     path("schedule_messages", ScheduleMessages.as_view()),
-    path("messages.csv", export_messages),
+    path("messages.csv", ExportMessages.as_view()),
     path("individuals/<int:individual_id>", IndividualDetails.as_view()),
 
     path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),

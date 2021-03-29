@@ -2,7 +2,7 @@ import asyncio
 import io
 
 from django.contrib.auth.decorators import login_required
-from django.http import StreamingHttpResponse
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -142,11 +142,14 @@ class ScheduleMessages(APIView):
         return Response(result[DATA], status=result[STATUS])
 
 
-@login_required
-def export_messages(request):
-    csv_serializer = CSVSerializer()
-    with io.StringIO() as stream:
-        csv_serializer.serialize(Message.objects.all(), stream=stream, fields=(
+class ExportMessages(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        csv_serializer = CSVSerializer()
+        response = HttpResponse(content_type="text/csv")
+
+        csv_serializer.serialize(Message.objects.all(), stream=response, fields=(
             'telegram_msg_id',
             'sender_id',
             'sender_name',
@@ -156,7 +159,6 @@ def export_messages(request):
             'from_group',
             'is_flagged',
         ))
-        response = StreamingHttpResponse(stream, content_type="text/csv")
         response['Content-Disposition'] = 'attachment; filename="messages.csv"'
         return response
 
