@@ -1,11 +1,15 @@
 import asyncio
+import io
 
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+
 from telegram_bot.constants import (
     DATA,
     FAIL_MSG,
@@ -16,13 +20,14 @@ from telegram_bot.constants import (
 )
 from telegram_bot.logger import logger
 
-from mpact.serializers import CustomTokenObtainPairSerializer
-from mpact.services import (
+from .csv_serializer import Serializer as CSVSerializer
+from .models import Message
+from .serializers import CustomTokenObtainPairSerializer
+from .services import (
     create_flagged_message,
     delete_flagged_message,
     download_schedule_messages_file,
     edit_message,
-    export_messages,
     get_dialog,
     get_flagged_messages,
     get_individual_details,
@@ -31,6 +36,7 @@ from mpact.services import (
     send_msg,
     update_individual_details,
 )
+
 
 def new_or_current_event_loop():
     try:
@@ -140,8 +146,21 @@ class ExportMessages(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        result = new_or_current_event_loop().run_until_complete(export_messages())
-        return Response(result[DATA], status=result[STATUS])
+        csv_serializer = CSVSerializer()
+        response = HttpResponse(content_type="text/csv")
+
+        csv_serializer.serialize(Message.objects.all(), stream=response, fields=(
+            'telegram_msg_id',
+            'sender_id',
+            'sender_name',
+            'room_id',
+            'message',
+            'date',
+            'from_group',
+            'is_flagged',
+        ))
+        response['Content-Disposition'] = 'attachment; filename="messages.csv"'
+        return response
 
 
 class IndividualDetails(APIView):
@@ -163,6 +182,7 @@ class IndividualDetails(APIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
 
 class Logout(APIView):
     permission_classes = (IsAuthenticated,)

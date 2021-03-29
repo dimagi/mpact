@@ -3,8 +3,9 @@
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
-      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Bookmarks'></div>
-      <div class='logout h-100' @click='logout()' title='logout'></div>
+      <div class='download h-100' @click='exportMessages()' title='Export'></div>
+      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
+      <div class='logout h-100' @click='logout()' title='Log out'></div>
     </div>
     <div class='chat-contacts'>
       <div class='side-nav-row mt-2' v-for='(mainObj, i) in contacts' :key='i'>
@@ -42,7 +43,8 @@
 </template>
 <script>
 import { clearStorage } from '../utils/helpers';
- 
+import Api from '../services/Api';
+
 export default {
   name: 'side-nav',
   props: ['username', 'contacts'],
@@ -73,6 +75,20 @@ export default {
     async navigateToBookmarks() {
       const route = this.$router.resolve({ path: '/flagged-messages' });
       window.open(route.href, '_self');
+    },
+    async exportMessages() {
+      try {
+        const response = await Api.get('/messages.csv');
+        const blob = new Blob([response.data], { type: 'application/csv' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = 'messages.csv'
+        link.click()
+        URL.revokeObjectURL(link.href)
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
     },
     async logout() {
       try {
@@ -134,6 +150,15 @@ export default {
 
   .username {
     width: 85%;
+  }
+
+  .download {
+    width: 15%;
+    background-size: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url('../assets/download.svg');
+    cursor: pointer;
   }
 
   .bookmarks {

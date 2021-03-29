@@ -39,9 +39,7 @@ from telegram_bot.logger import logger
 from telegram_bot.messages import WELCOME
 from telegram_bot.utils import get_or_none, increment_messages_count
 
-bot_client = TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH).start(
-    bot_token=BOT_TOKEN
-)
+bot_client = TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH)
 
 
 @bot_client.on(events.ChatAction)
@@ -212,6 +210,7 @@ async def save_send_message(msg_data, channel_layer):
 
 def main():
     """Start the bot."""
+    bot_client.start(bot_token=BOT_TOKEN)
     with bot_client:
         bot_client.run_until_disconnected()
 

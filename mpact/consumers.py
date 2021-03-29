@@ -15,6 +15,6 @@ class ConnectionConsumer(AsyncWebsocketConsumer):
         # Send message to connected clients
         await self.send(text_data=json.dumps({MESSAGE: message}))
 
-    async def disconnect(self):
+    async def disconnect(self, code):
         # Leave room group
         self.channel_layer.group_discard(self.room_name, self.channel_name)
