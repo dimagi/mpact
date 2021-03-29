@@ -95,7 +95,7 @@ export default {
 
       },
       set(payload) {
-        this.$store.dispatch('update_messages', payload)
+        this.$store.dispatch('update_messages', {roomId: this.selectedRoom, msgs: payload});
       }
     },
   },

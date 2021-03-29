@@ -26,7 +26,16 @@ export default new Vuex.Store({
     },
     actions: {
         update_messages({commit}, payload) {
-            commit('SET_MESSAGE', payload)
+            let finalPayload = []
+            const msgs = payload.msgs;
+            const roomId = payload.roomId;
+            msgs.forEach(msg => {
+                console.log(msg.room_id,roomId,msg.room_id == roomId);
+                if (roomId === '' || msg.room_id === undefined || msg.room_id == roomId) {
+                    finalPayload.push(msg);
+                }
+            });
+            commit('SET_MESSAGE', finalPayload)
         },
         update_unread_messages({commit}, payload) {
             commit('SET_UNREAD_MESSAGE', payload)

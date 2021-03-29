@@ -59,7 +59,7 @@ new Vue({
         }
         const data = await MessageService.getIndividualMessages(params);
       }
-      this.$store.dispatch('update_messages', currentMessages)
+      this.$store.dispatch('update_messages', {roomId: activeChannel, msgs: currentMessages})
     }
 
     socket.onclose = event => {
