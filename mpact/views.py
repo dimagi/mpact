@@ -1,7 +1,5 @@
 import asyncio
-import io
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+import tablib
 from telegram_bot.constants import (
     DATA,
     FAIL_MSG,
@@ -21,12 +20,11 @@ from telegram_bot.constants import (
 from telegram_bot.logger import logger
 
 from .csv_serializer import Serializer as CSVSerializer
-from .models import Message
+from .models import Chat, Message
 from .serializers import CustomTokenObtainPairSerializer
 from .services import (
     create_flagged_message,
     delete_flagged_message,
-    download_schedule_messages_file,
     edit_message,
     get_dialog,
     get_flagged_messages,
@@ -131,10 +129,21 @@ class ScheduleMessages(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        result = new_or_current_event_loop().run_until_complete(
-            download_schedule_messages_file()
-        )
-        return Response(result[DATA], status=result[STATUS])
+        """
+        Returns an empty scheduled messages file with a sheet for each
+        group chat.
+        """
+        headers = ["Days", "Message", "Comment"]
+        databook = tablib.Databook()
+        for chat in Chat.objects.all():
+            sheet = tablib.Dataset(headers=headers)
+            sheet.title = f"{chat.title}|{chat.id}"
+            databook.add_sheet(sheet)
+
+        xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        response = HttpResponse(databook.export("xlsx"), content_type=xlsx)
+        response['Content-Disposition'] = 'attachment; filename="schedules.xlsx"'
+        return response
 
     def post(self, request):
         file = request.data["file"]

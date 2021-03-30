@@ -21,6 +21,7 @@ urlpatterns = [
     path("flaggedmessages", FlagMessage.as_view()),
     path("flaggedmessages/<int:id>", FlagMessageDelete.as_view()),
     path("schedule_messages", ScheduleMessages.as_view()),
+    path("schedules.xlsx", ScheduleMessages.as_view()),
     path("messages.csv", ExportMessages.as_view()),
     path("individuals/<int:individual_id>", IndividualDetails.as_view()),
 
