@@ -3,6 +3,9 @@
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
+      <!-- <div class='cal_down h-100' @click='downloadSchedules()' title='Download empty schedules'></div> -->
+      <a href="/api/schedules.xlsx" target="_blank" class="cal_down h-100"></a><!-- TODO: Fix downloadSchedules() -->
+      <!-- <div class='cal_up h-100' @click='uploadSchedules()' title='Upload schedules'></div> -->
       <div class='download h-100' @click='exportMessages()' title='Export'></div>
       <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
       <div class='logout h-100' @click='logout()' title='Log out'></div>
@@ -75,6 +78,26 @@ export default {
     async navigateToBookmarks() {
       const route = this.$router.resolve({ path: '/flagged-messages' });
       window.open(route.href, '_self');
+    },
+    async downloadSchedules() {
+      try {
+        const response = await Api.get('/schedules.xlsx');
+        const blob = new Blob(
+            [response.data],
+            { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+        )
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = 'schedules.xlsx'
+        link.click()
+        URL.revokeObjectURL(link.href)
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    },
+    async uploadSchedules() {
+      // TODO: ... await Api.post('/schedule_messages') ...
     },
     async exportMessages() {
       try {
@@ -150,6 +173,24 @@ export default {
 
   .username {
     width: 85%;
+  }
+
+  .cal_down {
+    width: 15%;
+    background-size: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url('../assets/cal_down.svg');
+    cursor: pointer;
+  }
+
+  .cal_up {
+    width: 15%;
+    background-size: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url('../assets/cal_up.svg');
+    cursor: pointer;
   }
 
   .download {
