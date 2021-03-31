@@ -7,7 +7,7 @@
       <a href="/api/schedules.xlsx" target="_blank" class="cal_down h-100"></a><!-- TODO: Fix downloadSchedules() -->
       <!-- <div class='cal_up h-100' @click='uploadSchedules()' title='Upload schedules'></div> -->
       <div class='download h-100' @click='exportMessages()' title='Export'></div>
-      <div class='bookmarks h-100' @click='navigateToBookmarks()' title='Flagged messages'></div>
+      <div class='flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
       <div class='logout h-100' @click='logout()' title='Log out'></div>
     </div>
     <div class='chat-contacts'>
@@ -75,7 +75,7 @@ export default {
     setActiveChat(i) {
       this.activeChat = i;
     },
-    async navigateToBookmarks() {
+    async navigateToFlagged() {
       const route = this.$router.resolve({ path: '/flagged-messages' });
       window.open(route.href, '_self');
     },
@@ -202,12 +202,12 @@ export default {
     cursor: pointer;
   }
 
-  .bookmarks {
+  .flagged {
     width: 15%;
     background-size: 20px;
     background-position: center;
     background-repeat: no-repeat;
-    background-image: url('../assets/bookmark.svg');
+    background-image: url('../assets/flag.svg');
     cursor: pointer;
   }
 

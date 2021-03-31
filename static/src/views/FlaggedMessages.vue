@@ -73,7 +73,7 @@ Vue.component('warning-modal', {
             </button>
           </div>
           <div class='modal-body'>
-            Are you sure you want to delete this bookmark?
+            Are you sure you want to unflag this message?
           </div>
           <div class='modal-footer'>
             <button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>
@@ -86,7 +86,7 @@ Vue.component('warning-modal', {
 });
 
 export default {
-  name: 'bookmarks',
+  name: 'flagged_messages',
   components: {
     ChatWindow,
   },
@@ -120,13 +120,13 @@ export default {
   },
   mounted() {
     try {
-      this.fetchBookmarks();
+      this.fetchFlaggedMessages();
     } catch (err) {
       console.error(err);
     }
   },
   methods: {
-    async fetchBookmarks() {
+    async fetchFlaggedMessages() {
       try {
         const result = await MessageService.fetchFlaggedMessages({});
         if (result && result.data.flagged_messages) {
@@ -149,7 +149,7 @@ export default {
           this.chatProps.messagesLoaded = true;
           this.chatProps.rooms = [{
             roomId: 1,
-            roomName: 'Bookmarks',
+            roomName: 'Flagged Messages',
             users: [],
           }];
           this.showToastError = false;
@@ -170,7 +170,7 @@ export default {
         if (response && response.data.is_success) {
           const updatedMessages = this.chatProps.messages.filter((message) => message._id !== id);
           this.chatProps.messages = updatedMessages;
-          this.toastMessage = 'Bookmark is deleted';
+          this.toastMessage = 'Message is unflagged';
           this.showToast();
         }
       } catch (err) {

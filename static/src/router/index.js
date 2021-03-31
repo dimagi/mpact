@@ -24,8 +24,8 @@ const router = new Router({
   },
   {
     path: '/flagged-messages',
-    name: 'bookmarks',
-    component: () => import('../views/Bookmarks.vue'),
+    name: 'flagged_messages',
+    component: () => import('../views/FlaggedMessages.vue'),
     meta: {
       auth: true,
     },
