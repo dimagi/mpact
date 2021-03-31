@@ -2,7 +2,24 @@
 
 A Telegram-based expert support system
 
+## Telegram configuration
 
+1. Download Telegram to your phone and set it up.
+
+1. Follow instructions for [obtaining your Telegram API 
+   key](https://core.telegram.org/api/obtaining_api_id). Note your API ID 
+   and the API hash.
+
+1. [Create a bot](https://core.telegram.org/bots#6-botfather) by messaging 
+   the botfather. Note your bot's username and token.
+
+1. **Optional**: [Disable privacy 
+   mode](https://www.teleme.io/articles/group_privacy_mode_of_telegram_bots) 
+   for your bot to ensure that it can see all messages. If you do not wish to 
+   disable [privacy mode](https://core.telegram.org/bots#privacy-mode), ensure 
+   that the bot is added as an admin to each group. If it was added as a non-admin, 
+   you will need to re-add the bot.
+   
 ## Installing a development environment
 
 1. Install prerequisite packages
