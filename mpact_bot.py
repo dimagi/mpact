@@ -26,6 +26,7 @@ from telegram_bot.constants import (
     FROM_GROUP,
     LAST_NAME,
     MESSAGE,
+    MSG_WELCOME,
     ROOM_ID,
     SENDER_ID,
     SENDER_NAME,
@@ -36,7 +37,6 @@ from telegram_bot.constants import (
     WEBSOCKET_ROOM_NAME,
 )
 from telegram_bot.logger import logger
-from telegram_bot.messages import WELCOME
 from telegram_bot.utils import get_or_none, increment_messages_count
 
 bot_client = TelegramClient("bot", TELEGRAM_API_ID, TELEGRAM_API_HASH)
@@ -171,9 +171,9 @@ async def start_handler(event, channel_layer, msg_data):
         bot_individual.save()
 
     await save_send_message(msg_data, channel_layer)
-    await event.respond(WELCOME)
+    await event.respond(MSG_WELCOME)
     msg_data = message_data(
-        event.chat_id, event.message.id, current_bot.id, current_bot.first_name, WELCOME
+        event.chat_id, event.message.id, current_bot.id, current_bot.first_name, MSG_WELCOME
     )
     msg_data[FROM_GROUP] = False
     await save_send_message(msg_data, channel_layer)

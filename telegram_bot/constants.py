@@ -34,3 +34,6 @@ MESSAGE_SCHEDULED = "Messages has been scheduled"
 FAIL_MSG = "Something went wrong"
 EDIT_FAIL = "Message cannot be edited"
 LOGOUT_SUCCESS = "Logout successful"
+
+# Messages to beneficiaries/consumers
+MSG_WELCOME = "Welcome!"
