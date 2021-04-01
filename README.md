@@ -58,7 +58,7 @@ You can generate a secret key with
        export BOT_TOKEN=<Telegram Bot Token>
        export TELEGRAM_API_ID=<Telegram API ID>
        export TELEGRAM_API_HASH=<Telegram API Hash>
-       export ALLOWED_HOSTS='127.0.0.1 localhost'
+       export ALLOWED_HOSTS='127.0.0.1,localhost'
        export DATABASE_URL=sqlite:///mpact.sqlite
        export SECURED_URL_SECRET_KEY=<Another Secret Key>
        export SECURITY_PASSWORD_SALT=<Password Salt>
