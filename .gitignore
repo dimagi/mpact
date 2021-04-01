@@ -141,3 +141,6 @@ manage-dev
 bot.out
 dump.rdb
 .idea
+.envrc
+*~
+mpact.sqlite
