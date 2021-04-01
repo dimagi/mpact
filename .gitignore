@@ -143,3 +143,4 @@ dump.rdb
 .idea
 .envrc
 *~
+mpact.sqlite
