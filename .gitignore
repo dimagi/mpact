@@ -142,5 +142,6 @@ bot.out
 dump.rdb
 .idea
 .envrc
+.env.dev
 *~
 mpact.sqlite
