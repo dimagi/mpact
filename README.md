@@ -19,8 +19,38 @@ A Telegram-based expert support system
    disable [privacy mode](https://core.telegram.org/bots#privacy-mode), ensure 
    that the bot is added as an admin to each group. If it was added as a non-admin, 
    you will need to re-add the bot.
-   
-## Installing a development environment
+
+# Quickstart with Docker
+
+Install docker and docker-compose.
+
+## 1. Set Environment Variables
+
+`cp .env.dev.example .env.dev`
+
+Fill in the appropriate values as needed.
+
+## 2. Start services
+
+```bash
+docker-compose up
+```
+
+## 3. Perform first-time setup
+
+```python
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py createsuperuser
+docker-compose exec npm install
+docker-compose exec npm run dev
+```
+
+Done!
+
+Open [localhost:8000](http://localhost:8000) in a browser and skip to "Creating a new chat group".
+
+
+# Legacy set up instructions
 
 1. Install prerequisite packages
 
