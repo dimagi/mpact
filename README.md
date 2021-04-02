@@ -114,7 +114,7 @@ database and create a superuser:
 You can run your development environment with the following commands,
 each in their own terminal and/or by using a tool like [tmux][tmux].
 
-    (redis) $ docker-compose up
+    (redis) $ redis-server
     (bot) $ python3 mpact_bot.py
     (worker) $ celery -A telegram_bot worker -l info --pool=solo
     (beat) $ celery -A telegram_bot beat -l info \
@@ -123,7 +123,7 @@ each in their own terminal and/or by using a tool like [tmux][tmux].
     (client) $ npm run dev
 
 
-## Creating a new chat group
+# Creating a new chat group
 
 1. Ensure **mpact_bot.py** is running.
 2. In Telegram, open the menu and choose "New Group".
