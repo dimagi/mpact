@@ -41,8 +41,8 @@ docker-compose up
 ```python
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
-docker-compose exec npm install
-docker-compose exec npm run dev
+docker-compose exec web npm install
+docker-compose exec web npm run dev
 ```
 
 Done!
