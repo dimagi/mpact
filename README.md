@@ -19,8 +19,38 @@ A Telegram-based expert support system
    disable [privacy mode](https://core.telegram.org/bots#privacy-mode), ensure 
    that the bot is added as an admin to each group. If it was added as a non-admin, 
    you will need to re-add the bot.
-   
-## Installing a development environment
+
+# Quickstart with Docker
+
+Install docker and docker-compose.
+
+## 1. Set Environment Variables
+
+`cp .env.dev.example .env.dev`
+
+Fill in the appropriate values as needed.
+
+## 2. Start services
+
+```bash
+docker-compose up
+```
+
+## 3. Perform first-time setup
+
+```python
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py createsuperuser
+docker-compose exec web npm install
+docker-compose exec web npm run dev
+```
+
+Done!
+
+Open [localhost:8000](http://localhost:8000) in a browser and skip to "Creating a new chat group".
+
+
+# Legacy set up instructions
 
 1. Install prerequisite packages
 
@@ -84,7 +114,7 @@ database and create a superuser:
 You can run your development environment with the following commands,
 each in their own terminal and/or by using a tool like [tmux][tmux].
 
-    (redis) $ docker-compose up
+    (redis) $ redis-server
     (bot) $ python3 mpact_bot.py
     (worker) $ celery -A telegram_bot worker -l info --pool=solo
     (beat) $ celery -A telegram_bot beat -l info \
@@ -93,7 +123,7 @@ each in their own terminal and/or by using a tool like [tmux][tmux].
     (client) $ npm run dev
 
 
-## Creating a new chat group
+# Creating a new chat group
 
 1. Ensure **mpact_bot.py** is running.
 2. In Telegram, open the menu and choose "New Group".
