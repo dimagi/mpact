@@ -253,7 +253,7 @@ def schedule_messages(xlsx_file):
     bad_titles = []
     for sheet in sheets:
         try:
-            receiver_id = int(sheet["title"].split('|')[:-1])
+            receiver_id = int(sheet["title"].split('|')[-1])
             chat = Chat.objects.get(id=receiver_id)
         except (Chat.DoesNotExist, TypeError, ValueError):
             bad_titles.append(sheet["title"])
