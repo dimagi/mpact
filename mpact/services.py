@@ -264,6 +264,11 @@ def schedule_messages(xlsx_file):
             if is_blank(row["Days"]) or is_blank(row["Message"]):
                 bad_rows[sheet["title"]].append(n)
                 continue
+            # fixme: this appears like it wouldn't work if the day or time changed in the sheet
+            # i.e. it would create a new schedule object but not delete the previous one.
+            # a simple workaround could be to clear the schedule for the chat prior to starting
+            # except that there is also not a super-easy way to pull out the schedule for a chat
+            # after it is created. we likely need more modeling support to make this work well.
             schedule, __ = ClockedSchedule.objects.get_or_create(
                 clocked_time=start_date_time + timedelta(days=row["Days"]),
             )

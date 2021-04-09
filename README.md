@@ -137,5 +137,29 @@ to the database. The next time you log into mPACT, the group will appear
 in the left panel.
 
 
+# Technical Documentation
+
+*This section is a work in progress.*
+
+## Scheduling
+
+You can test scheduling by running the following commands. Get `<container_id>` from running `docker ps`.
+
+```bash
+docker cp /path/to/mpact_schedules.xlsx <container_id>:/mpact_schedules.xlsx
+docker-compose exec web ./manage.py upload_schedule /mpact_schedules.xlsx 
+```
+
+Scheduling is managed via [`django-celery-beat`](https://django-celery-beat.readthedocs.io/en/latest/).
+
+When schedule's are uploaded, once-off `PeriodicTask` objects are created for each row in the schedule.
+These will call `tasks.send_msgs` with the appropriate arguments for the chat.
+
+As of now there is no way to link back to the schedule once they are created. Meaning that
+it's impossible to "deschedule" or "replace" something after it's been uploaded.
+Additionally, this means that the download schedule button will always return a blank sheet,
+even if a schedule exists for the chat.
+
+
 [direnv]: https://github.com/direnv/direnv/#direnv----unclutter-your-profile
 [tmux]: https://github.com/tmux/tmux#welcome-to-tmux
