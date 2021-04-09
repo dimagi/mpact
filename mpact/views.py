@@ -147,7 +147,7 @@ class ScheduleMessages(APIView):
 
     def post(self, request):
         file = request.data["file"]
-        result = new_or_current_event_loop().run_until_complete(schedule_messages(file))
+        result = schedule_messages(file)
         return Response(result[DATA], status=result[STATUS])
 
 

@@ -237,8 +237,7 @@ async def delete_flagged_message(id):
     }
 
 
-@exception
-async def schedule_messages(xlsx_file):
+def schedule_messages(xlsx_file):
     """
     Schedule the messages in bulk and
     returns erroneous sheets and rows if any
