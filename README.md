@@ -152,7 +152,7 @@ docker-compose exec web ./manage.py upload_schedule /mpact_schedules.xlsx
 
 Scheduling is managed via [`django-celery-beat`](https://django-celery-beat.readthedocs.io/en/latest/).
 
-When schedule's are uploaded, once-off `PeriodicTask` objects are created for each row in the schedule.
+When schedules are uploaded, once-off `PeriodicTask` objects are created for each row in the schedule.
 These will call `tasks.send_msgs` with the appropriate arguments for the chat.
 
 As of now there is no way to link back to the schedule once they are created. Meaning that
