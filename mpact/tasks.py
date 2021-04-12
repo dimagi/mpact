@@ -1,6 +1,8 @@
 from celery import shared_task
 from channels.layers import get_channel_layer
 from django.db.models import F
+
+from mpact.helpers import get_chat_by_telegram_id
 from telegram_bot.constants import (
     DATA,
     FROM_GROUP,
@@ -40,18 +42,15 @@ async def send_msg_task(receiver_id, message):
         message_data[SENDER_NAME] = current_bot.first_name
         message_data[ROOM_ID] = int(receiver_id)
         message_data[MESSAGE] = message
-        try:
-            group_chat = Chat.objects.get(id=receiver_id)
-            message_data[FROM_GROUP] = True
 
-        except Chat.DoesNotExist:
-            individual_chat = Individual.objects.get(id=receiver_id)
-            message_data[FROM_GROUP] = False
+        chat_or_group = get_chat_by_telegram_id(receiver_id)
+        group_mode = isinstance(chat_or_group, Chat)
+        message_data[FROM_GROUP] = group_mode
 
-        if message_data[FROM_GROUP]:
+        if group_mode:
             receiver = InputPeerChat(message_data[ROOM_ID])
         else:
-            access_hash = individual_chat.access_hash
+            access_hash = chat_or_group.access_hash
             receiver = InputPeerUser(message_data[ROOM_ID], int(access_hash))
 
         msg_inst = await bot.send_message(receiver, message_data[MESSAGE])
@@ -64,7 +63,6 @@ async def send_msg_task(receiver_id, message):
             UserChatUnread.objects.filter(room_id=message_data[ROOM_ID]).update(
                 unread_count=F("unread_count") + 1
             )
-
             channel_layer = get_channel_layer()
             await channel_layer.group_send(
                 WEBSOCKET_ROOM_NAME, {"type": "chat_message", MESSAGE: serializer.data}
