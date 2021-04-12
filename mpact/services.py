@@ -81,7 +81,7 @@ async def handle_post_message_send_actions(chat_object, message_data):
 
 
 @exception
-async def send_msg(room_id, message, from_group):
+async def send_msg(room_id, message, from_group=None):
     """
     Sends the message to the particular chat
     """
@@ -89,7 +89,12 @@ async def send_msg(room_id, message, from_group):
         current_bot = await bot.get_me()
 
         chat_object = get_chat_by_telegram_id(room_id)
-        if from_group != isinstance(chat_object, Chat):
+
+        # dynamically set from_group or ensure explicit param correctly identified the chat type
+        computed_from_group = isinstance(chat_object, Chat)
+        if from_group is None:
+            from_group = computed_from_group
+        elif from_group != computed_from_group:
             raise Exception('Unexpected chat type / group flag combination')
 
         if from_group:
