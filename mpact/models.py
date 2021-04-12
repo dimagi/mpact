@@ -21,7 +21,7 @@ class Profile(models.Model):
 
 
 class Chat(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the chat')
     title = models.TextField()
     created_at = models.DateTimeField()
     start_date = models.DateField(default=timezone.now)
