@@ -25,17 +25,17 @@ from .views import new_or_current_event_loop
 @shared_task
 def send_msgs(receiver_id, message):
     return new_or_current_event_loop().run_until_complete(
-        send_msg(receiver_id, message)
+        send_msg_task(receiver_id, message)
     )
 
 
-async def send_msg(receiver_id, message):
+async def send_msg_task(receiver_id, message):
     """
     Sends the message to the particular chat
     """
     async with start_bot_client() as bot:
-        data = {}
         current_bot = await bot.get_me()
+        data = {}
         data[SENDER_ID] = current_bot.id
         data[SENDER_NAME] = current_bot.first_name
         data[ROOM_ID] = int(receiver_id)
