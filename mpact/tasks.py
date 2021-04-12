@@ -37,24 +37,24 @@ async def send_msg_task(receiver_id, message):
     """
     async with start_bot_client() as bot:
         current_bot = await bot.get_me()
-        message_data = {}
-        message_data[SENDER_ID] = current_bot.id
-        message_data[SENDER_NAME] = current_bot.first_name
-        message_data[ROOM_ID] = int(receiver_id)
-        message_data[MESSAGE] = message
-
+        room_id = int(receiver_id)
         chat_or_group = get_chat_by_telegram_id(receiver_id)
         group_mode = isinstance(chat_or_group, Chat)
-        message_data[FROM_GROUP] = group_mode
-
         if group_mode:
-            receiver = InputPeerChat(message_data[ROOM_ID])
+            receiver = InputPeerChat(room_id)
         else:
             access_hash = chat_or_group.access_hash
-            receiver = InputPeerUser(message_data[ROOM_ID], int(access_hash))
+            receiver = InputPeerUser(room_id, int(access_hash))
 
-        msg_inst = await bot.send_message(receiver, message_data[MESSAGE])
-        message_data[TELEGRAM_MSG_ID] = msg_inst.id
+        msg_inst = await bot.send_message(receiver, message)
+        message_data = {
+            SENDER_ID: current_bot.id,
+            SENDER_NAME: current_bot.first_name,
+            ROOM_ID: int(receiver_id),
+            MESSAGE: message,
+            FROM_GROUP: group_mode,
+            TELEGRAM_MSG_ID: msg_inst.id
+        }
         serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             serializer.save()
