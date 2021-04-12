@@ -41,9 +41,12 @@ def exception(function):
 def increment_messages_count(serializer):
     if serializer.data[FROM_GROUP]:
         chat_inst = Chat.objects.get(id=serializer.data[ROOM_ID])
-        chat_inst.messages_count += 1
-        chat_inst.save()
+        increment_message_count(chat_inst)
     else:
         indi_inst = Individual.objects.get(id=serializer.data[ROOM_ID])
-        indi_inst.messages_count += 1
-        indi_inst.save()
+        increment_message_count(indi_inst)
+
+
+def increment_message_count(chat_object):
+    chat_object.messages_count += 1
+    chat_object.save()
