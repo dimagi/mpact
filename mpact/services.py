@@ -1,5 +1,4 @@
 import json
-import re
 import uuid
 from collections import defaultdict
 from contextlib import asynccontextmanager
