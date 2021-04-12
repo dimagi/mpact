@@ -68,31 +68,36 @@ async def start_bot_client() -> TelegramClient:
 
 
 @exception
-async def send_msg(data):
+async def send_msg(room_id, message, from_group):
     """
     Sends the message to the particular chat
     """
     async with start_bot_client() as bot:
         current_bot = await bot.get_me()
-        data[SENDER_ID] = current_bot.id
-        data[SENDER_NAME] = current_bot.first_name
 
-        if data[FROM_GROUP]:
-            receiver = await bot.get_entity(PeerChat(int(data[ROOM_ID])))
+        if from_group:
+            receiver = await bot.get_entity(PeerChat(room_id))
         else:
-            access_hash = Individual.objects.get(id=data[ROOM_ID]).access_hash
-            receiver = InputPeerUser(int(data[ROOM_ID]), int(access_hash))
-        msg_inst = await bot.send_message(receiver, data[MESSAGE])
-        data[TELEGRAM_MSG_ID] = msg_inst.id
-        serializer = MessageSerializer(data=data)
+            access_hash = Individual.objects.get(id=room_id).access_hash
+            receiver = InputPeerUser(room_id, int(access_hash))
+        msg_inst = await bot.send_message(receiver, message)
+
+        message_data = {
+            ROOM_ID: room_id,
+            MESSAGE: message,
+            FROM_GROUP: from_group,
+            SENDER_ID: current_bot.id,
+            SENDER_NAME: current_bot.first_name,
+            TELEGRAM_MSG_ID: msg_inst.id
+        }
+        serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             serializer.save()
             increment_messages_count(serializer)
             # incrementing the unread count for all the admin users
-            UserChatUnread.objects.filter(room_id=int(data[ROOM_ID])).update(
+            UserChatUnread.objects.filter(room_id=room_id).update(
                 unread_count=F("unread_count") + 1
             )
-
             channel_layer = get_channel_layer()
             await channel_layer.group_send(
                 WEBSOCKET_ROOM_NAME, {"type": "chat_message", MESSAGE: serializer.data}
