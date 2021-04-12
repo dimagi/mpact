@@ -35,33 +35,33 @@ async def send_msg_task(receiver_id, message):
     """
     async with start_bot_client() as bot:
         current_bot = await bot.get_me()
-        data = {}
-        data[SENDER_ID] = current_bot.id
-        data[SENDER_NAME] = current_bot.first_name
-        data[ROOM_ID] = int(receiver_id)
-        data[MESSAGE] = message
+        message_data = {}
+        message_data[SENDER_ID] = current_bot.id
+        message_data[SENDER_NAME] = current_bot.first_name
+        message_data[ROOM_ID] = int(receiver_id)
+        message_data[MESSAGE] = message
         try:
             group_chat = Chat.objects.get(id=receiver_id)
-            data[FROM_GROUP] = True
+            message_data[FROM_GROUP] = True
 
         except Chat.DoesNotExist:
             individual_chat = Individual.objects.get(id=receiver_id)
-            data[FROM_GROUP] = False
+            message_data[FROM_GROUP] = False
 
-        if data[FROM_GROUP]:
-            receiver = InputPeerChat(data[ROOM_ID])
+        if message_data[FROM_GROUP]:
+            receiver = InputPeerChat(message_data[ROOM_ID])
         else:
             access_hash = individual_chat.access_hash
-            receiver = InputPeerUser(data[ROOM_ID], int(access_hash))
+            receiver = InputPeerUser(message_data[ROOM_ID], int(access_hash))
 
-        msg_inst = await bot.send_message(receiver, data[MESSAGE])
-        data[TELEGRAM_MSG_ID] = msg_inst.id
-        serializer = MessageSerializer(data=data)
+        msg_inst = await bot.send_message(receiver, message_data[MESSAGE])
+        message_data[TELEGRAM_MSG_ID] = msg_inst.id
+        serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             serializer.save()
             increment_messages_count(serializer)
             # incrementing the unread count for all the admin users
-            UserChatUnread.objects.filter(room_id=data[ROOM_ID]).update(
+            UserChatUnread.objects.filter(room_id=message_data[ROOM_ID]).update(
                 unread_count=F("unread_count") + 1
             )
 
