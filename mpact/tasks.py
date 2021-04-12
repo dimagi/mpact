@@ -33,7 +33,7 @@ async def send_msg(receiver_id, message):
     """
     Sends the message to the particular chat
     """
-    async with await start_bot_client() as bot:
+    async with start_bot_client() as bot:
         data = {}
         current_bot = await bot.get_me()
         data[SENDER_ID] = current_bot.id
