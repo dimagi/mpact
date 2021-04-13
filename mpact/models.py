@@ -21,7 +21,10 @@ class Profile(models.Model):
 
 
 class Chat(models.Model):
-    id = models.IntegerField(primary_key=True)
+    """
+    Represents a telegram group
+    """
+    id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the chat')
     title = models.TextField()
     created_at = models.DateTimeField()
     start_date = models.DateField(default=timezone.now)
@@ -53,6 +56,9 @@ class ChatBot(models.Model):
 
 
 class Individual(models.Model):
+    """
+    Represents a telegram 1:1 conversation.
+    """
     id = models.IntegerField(primary_key=True)
     username = models.TextField(null=True)
     first_name = models.TextField()

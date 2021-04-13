@@ -1,5 +1,4 @@
 import json
-import re
 import uuid
 from collections import defaultdict
 from contextlib import asynccontextmanager
@@ -15,6 +14,7 @@ from telethon import TelegramClient
 from telethon.errors import MessageIdInvalidError
 from telethon.tl.types import InputPeerUser, PeerChat, PeerUser
 
+from mpact.helpers import get_chat_by_telegram_id
 from telegram_bot.constants import (
     BOT_TOKEN,
     DATA,
@@ -36,7 +36,7 @@ from telegram_bot.constants import (
     WEBSOCKET_ROOM_NAME,
 )
 from telegram_bot.logger import logger
-from telegram_bot.utils import exception, increment_messages_count
+from telegram_bot.utils import exception, increment_messages_count, increment_message_count
 
 from .models import (
     BotIndividual,
@@ -68,36 +68,54 @@ async def start_bot_client() -> TelegramClient:
         await bot.disconnect()
 
 
+async def handle_post_message_send_actions(chat_object, message_data):
+    increment_message_count(chat_object)
+    # incrementing the unread count for all the admin users
+    UserChatUnread.objects.filter(room_id=chat_object.id).update(
+        unread_count=F("unread_count") + 1
+    )
+    channel_layer = get_channel_layer()
+    await channel_layer.group_send(
+        WEBSOCKET_ROOM_NAME, {"type": "chat_message", MESSAGE: message_data}
+    )
+
+
 @exception
-async def send_msg(data):
+async def send_msg(room_id, message, from_group=None):
     """
     Sends the message to the particular chat
     """
     async with start_bot_client() as bot:
         current_bot = await bot.get_me()
-        data[SENDER_ID] = current_bot.id
-        data[SENDER_NAME] = current_bot.first_name
 
-        if data[FROM_GROUP]:
-            receiver = await bot.get_entity(PeerChat(int(data[ROOM_ID])))
+        chat_object = get_chat_by_telegram_id(room_id)
+
+        # dynamically set from_group or ensure explicit param correctly identified the chat type
+        computed_from_group = isinstance(chat_object, Chat)
+        if from_group is None:
+            from_group = computed_from_group
+        elif from_group != computed_from_group:
+            raise Exception('Unexpected chat type / group flag combination')
+
+        if from_group:
+            receiver = await bot.get_entity(PeerChat(room_id))
         else:
-            access_hash = Individual.objects.get(id=data[ROOM_ID]).access_hash
-            receiver = InputPeerUser(int(data[ROOM_ID]), int(access_hash))
-        msg_inst = await bot.send_message(receiver, data[MESSAGE])
-        data[TELEGRAM_MSG_ID] = msg_inst.id
-        serializer = MessageSerializer(data=data)
+            access_hash = chat_object.access_hash
+            receiver = InputPeerUser(room_id, int(access_hash))
+
+        msg_inst = await bot.send_message(receiver, message)
+        message_data = {
+            ROOM_ID: room_id,
+            MESSAGE: message,
+            FROM_GROUP: from_group,
+            SENDER_ID: current_bot.id,
+            SENDER_NAME: current_bot.first_name,
+            TELEGRAM_MSG_ID: msg_inst.id
+        }
+        serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             serializer.save()
-            increment_messages_count(serializer)
-            # incrementing the unread count for all the admin users
-            UserChatUnread.objects.filter(room_id=int(data[ROOM_ID])).update(
-                unread_count=F("unread_count") + 1
-            )
-
-            channel_layer = get_channel_layer()
-            await channel_layer.group_send(
-                WEBSOCKET_ROOM_NAME, {"type": "chat_message", MESSAGE: serializer.data}
-            )
+            await handle_post_message_send_actions(chat_object, serializer.data)
 
     return {
         DATA: {MESSAGE: serializer.data, IS_SUCCESS: True},
