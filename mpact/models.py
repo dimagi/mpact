@@ -21,8 +21,12 @@ class Profile(models.Model):
 
 
 class ChatBase(models.Model):
+    """
+    Represents a telegram chat, which could be a group or 1:1 chat (individual)
+    """
     id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the chat')
     messages_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         abstract = True
@@ -33,9 +37,6 @@ class Chat(ChatBase):
     Represents a telegram group
     """
     title = models.TextField()
-    created_at = models.DateTimeField()
-    start_date = models.DateField(default=timezone.now)
-    start_time = models.TimeField(default=timezone.now)
     participant_count = models.IntegerField(default=0)
 
     def __str__(self):
