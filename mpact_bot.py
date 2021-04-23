@@ -15,7 +15,7 @@ from mpact.models import (
     BotIndividual,
     GroupChat,
     ChatBot,
-    Individual,
+    IndividualChat,
     User,
     UserChatUnread,
 )
@@ -125,7 +125,7 @@ async def incoming_message_handler(event):
         # check if the message is from individual(PeerUser) or group(PeerChat) chat
         if isinstance(event.message.peer_id, types.PeerUser):
             msg_data[FROM_GROUP] = False
-            if not Individual.objects.filter(id=msg_data[ROOM_ID]).exists():
+            if not IndividualChat.objects.filter(id=msg_data[ROOM_ID]).exists():
                 # creating records in the UserChatUnread model for maintaining
                 # unread count for each user and individual chat.
                 for user in User.objects.all():
@@ -154,7 +154,7 @@ async def start_handler(event, channel_layer, msg_data):
 
     bot = Bot.objects.get(id=current_bot.id)
 
-    individual, i_created = Individual.objects.get_or_create(
+    individual, i_created = IndividualChat.objects.get_or_create(
         id=user_details.id,
         defaults={
             USERNAME: user_details.username,

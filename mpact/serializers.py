@@ -7,7 +7,7 @@ from .models import (
     GroupChat,
     ChatBot,
     FlaggedMessage,
-    Individual,
+    IndividualChat,
     Message,
     User,
 )
@@ -15,7 +15,7 @@ from .models import (
 
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Individual
+        model = IndividualChat
         fields = ["id", "username", "first_name", "last_name", "messages_count"]
 
 
@@ -79,7 +79,7 @@ class FlaggedMessageSerializer(serializers.ModelSerializer):
 
 class IndividualDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Individual
+        model = IndividualChat
         exclude = ["access_hash", "bots"]
 
 

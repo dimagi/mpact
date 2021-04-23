@@ -42,6 +42,7 @@ class GroupChat(ChatBase):
     def __str__(self):
         return f"{self.id} - {self.title}"
 
+
 class Bot(models.Model):
     id = models.IntegerField(primary_key=True)
     username = models.TextField()
@@ -61,7 +62,7 @@ class ChatBot(models.Model):
         return f"chat_id: {self.chat.id} - bot_username: {self.bot.username}"
 
 
-class Individual(ChatBase):
+class IndividualChat(ChatBase):
     """
     Represents a telegram 1:1 conversation.
     """
@@ -84,7 +85,7 @@ class BotIndividual(models.Model):
     bot = models.ForeignKey(
         Bot, related_name="bot_individuals", on_delete=models.CASCADE
     )
-    individual = models.ForeignKey(Individual, on_delete=models.CASCADE)
+    individual = models.ForeignKey(IndividualChat, on_delete=models.CASCADE)
 
     def __str__(self):
         return (

@@ -43,7 +43,7 @@ from .models import (
     GroupChat,
     ChatBot,
     FlaggedMessage,
-    Individual,
+    IndividualChat,
     Message,
     UserChatUnread,
 )
@@ -345,8 +345,8 @@ async def get_individual_details(individual_id):
     Return the individual details
     """
     try:
-        individual_details = Individual.objects.get(id=individual_id)
-    except Individual.DoesNotExist:
+        individual_details = IndividualChat.objects.get(id=individual_id)
+    except IndividualChat.DoesNotExist:
         return {
             DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
             STATUS: status.HTTP_404_NOT_FOUND,
@@ -365,8 +365,8 @@ async def update_individual_details(individual_id, data):
     Return the updated individual details
     """
     try:
-        individual_details = Individual.objects.get(id=individual_id)
-    except Individual.DoesNotExist:
+        individual_details = IndividualChat.objects.get(id=individual_id)
+    except IndividualChat.DoesNotExist:
         return {
             DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
             STATUS: status.HTTP_404_NOT_FOUND,

@@ -9,14 +9,14 @@ from .models import (
     GroupChat,
     ChatBot,
     FlaggedMessage,
-    Individual,
+    IndividualChat,
     Message,
     UserChatUnread,
 )
 
 admin.site.register(GroupChat)
 admin.site.register(Bot)
-admin.site.register(Individual)
+admin.site.register(IndividualChat)
 admin.site.register(ChatBot)
 admin.site.register(BotIndividual)
 admin.site.register(Message)
@@ -46,7 +46,7 @@ class CustomPeriodicForm(PeriodicTaskForm):
         super().__init__(*args, **kwargs)
 
         groups = [(c.id, c.title) for c in GroupChat.objects.all()]
-        individuals = [(i.id, i.first_name) for i in Individual.objects.all()]
+        individuals = [(i.id, i.first_name) for i in IndividualChat.objects.all()]
         self.fields["args"].choices = [
             ("chat", groups),
             ("individual", individuals),
