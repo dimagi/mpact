@@ -30,13 +30,7 @@ Install docker and docker-compose.
 
 Fill in the appropriate values as needed.
 
-## 2. Start services
-
-```bash
-docker-compose up
-```
-
-## 3. Perform first-time setup
+## 2. Perform first-time setup and start services
 
 ```bash
 make init
@@ -46,6 +40,29 @@ Enter user details to create your first superuser, and you're done!
 
 Open [localhost:8000](http://localhost:8000) in a browser and skip to "Creating a new chat group".
 
+Note, that for subsequent runs, you can just run
+
+```bash
+make start
+```
+
+or
+
+```bash
+docker-compose up
+```
+
+Additionally, if you need to restart processes (edits are not automatically picked up by celery and the bot) you can run:
+
+```bash
+make start
+```
+
+More details on available commands can be found by running:
+
+```bash
+make
+```
 
 # Legacy set up instructions
 
