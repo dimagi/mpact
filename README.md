@@ -38,14 +38,11 @@ docker-compose up
 
 ## 3. Perform first-time setup
 
-```python
-docker-compose exec web python manage.py migrate
-docker-compose exec web python manage.py createsuperuser
-docker-compose exec web npm install
-docker-compose exec web npm run dev
+```bash
+make init
 ```
 
-Done!
+Enter user details to create your first superuser, and you're done!
 
 Open [localhost:8000](http://localhost:8000) in a browser and skip to "Creating a new chat group".
 
