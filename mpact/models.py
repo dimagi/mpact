@@ -32,7 +32,7 @@ class ChatBase(models.Model):
         abstract = True
 
 
-class Chat(ChatBase):
+class GroupChat(ChatBase):
     """
     Represents a telegram group
     """
@@ -47,14 +47,14 @@ class Bot(models.Model):
     username = models.TextField()
     first_name = models.TextField()
     last_name = models.TextField(null=True)
-    chats = models.ManyToManyField(Chat, through="ChatBot")
+    chats = models.ManyToManyField(GroupChat, through="ChatBot")
 
     def __str__(self):
         return f"{self.id} - {self.username}"
 
 
 class ChatBot(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    chat = models.ForeignKey(GroupChat, on_delete=models.CASCADE)
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
 
     def __str__(self):

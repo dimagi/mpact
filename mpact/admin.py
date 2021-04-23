@@ -6,7 +6,7 @@ from django_celery_beat.admin import PeriodicTask, PeriodicTaskAdmin, PeriodicTa
 from .models import (
     Bot,
     BotIndividual,
-    Chat,
+    GroupChat,
     ChatBot,
     FlaggedMessage,
     Individual,
@@ -14,7 +14,7 @@ from .models import (
     UserChatUnread,
 )
 
-admin.site.register(Chat)
+admin.site.register(GroupChat)
 admin.site.register(Bot)
 admin.site.register(Individual)
 admin.site.register(ChatBot)
@@ -45,7 +45,7 @@ class CustomPeriodicForm(PeriodicTaskForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        groups = [(c.id, c.title) for c in Chat.objects.all()]
+        groups = [(c.id, c.title) for c in GroupChat.objects.all()]
         individuals = [(i.id, i.first_name) for i in Individual.objects.all()]
         self.fields["args"].choices = [
             ("chat", groups),

@@ -40,7 +40,7 @@ from telegram_bot.utils import exception, increment_messages_count, increment_me
 
 from .models import (
     BotIndividual,
-    Chat,
+    GroupChat,
     ChatBot,
     FlaggedMessage,
     Individual,
@@ -91,7 +91,7 @@ async def send_msg(room_id, message, from_group=None):
         chat_object = get_chat_by_telegram_id(room_id)
 
         # dynamically set from_group or ensure explicit param correctly identified the chat type
-        computed_from_group = isinstance(chat_object, Chat)
+        computed_from_group = isinstance(chat_object, GroupChat)
         if from_group is None:
             from_group = computed_from_group
         elif from_group != computed_from_group:
@@ -272,8 +272,8 @@ def schedule_messages(xlsx_file):
     for sheet in sheets:
         try:
             receiver_id = int(sheet["title"].split('|')[-1])
-            chat = Chat.objects.get(id=receiver_id)
-        except (Chat.DoesNotExist, TypeError, ValueError):
+            chat = GroupChat.objects.get(id=receiver_id)
+        except (GroupChat.DoesNotExist, TypeError, ValueError):
             bad_titles.append(sheet["title"])
             continue
 

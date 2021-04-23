@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     Bot,
     BotIndividual,
-    Chat,
+    GroupChat,
     ChatBot,
     FlaggedMessage,
     Individual,
@@ -37,7 +37,7 @@ class BotSerializer(serializers.ModelSerializer):
 
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Chat
+        model = GroupChat
         fields = ["id", "title", "messages_count", "participant_count"]
 
 

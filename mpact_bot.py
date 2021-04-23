@@ -13,7 +13,7 @@ from telethon.tl import types
 from mpact.models import (
     Bot,
     BotIndividual,
-    Chat,
+    GroupChat,
     ChatBot,
     Individual,
     User,
@@ -58,7 +58,7 @@ async def chat_handler(event):
             serializer = ChatSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             # add newly created group details in the database
-            chat = Chat.objects.create(**data)
+            chat = GroupChat.objects.create(**data)
             for user in event.action_message.action.users:
                 user_details = await bot_client.get_entity(user)
                 current_bot = await bot_client.get_me()
@@ -82,7 +82,7 @@ async def chat_handler(event):
                 UserChatUnread.objects.create(user_id=user.pk, room_id=data["id"])
 
         elif event.new_title:
-            chat = get_or_none(Chat, id=event.action_message.peer_id.chat_id)
+            chat = get_or_none(GroupChat, id=event.action_message.peer_id.chat_id)
             if chat:
                 chat.title = event.new_title
                 chat.save()
@@ -98,7 +98,7 @@ async def chat_handler(event):
 
 
 def increment_decrement_participant_count(event, operator):
-    chat = get_or_none(Chat, id=abs(event.chat_id))
+    chat = get_or_none(GroupChat, id=abs(event.chat_id))
     if chat:
         if operator == "+":
             chat.participant_count += len(event.users)
