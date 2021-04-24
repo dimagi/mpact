@@ -30,25 +30,39 @@ Install docker and docker-compose.
 
 Fill in the appropriate values as needed.
 
-## 2. Start services
+## 2. Perform first-time setup and start services
+
+```bash
+make init
+```
+
+Enter user details to create your first superuser, and you're done!
+
+Open [localhost:8000](http://localhost:8000) in a browser and skip to "Creating a new chat group".
+
+Note, that for subsequent runs, you can just run
+
+```bash
+make start
+```
+
+or
 
 ```bash
 docker-compose up
 ```
 
-## 3. Perform first-time setup
+Additionally, if you need to restart processes (edits are not automatically picked up by celery and the bot) you can run:
 
-```python
-docker-compose exec web python manage.py migrate
-docker-compose exec web python manage.py createsuperuser
-docker-compose exec web npm install
-docker-compose exec web npm run dev
+```bash
+make start
 ```
 
-Done!
+More details on available commands can be found by running:
 
-Open [localhost:8000](http://localhost:8000) in a browser and skip to "Creating a new chat group".
-
+```bash
+make
+```
 
 # Legacy set up instructions
 
