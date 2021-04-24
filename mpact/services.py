@@ -277,7 +277,7 @@ def schedule_messages(xlsx_file):
             bad_titles.append(sheet["title"])
             continue
 
-        start_date_time = parse(f"{chat.start_date} {chat.start_time}")
+        start_date_time = parse(f"{chat.schedule_start_date} {chat.schedule_start_time}")
         for n, row in enumerate(sheet["data"], start=1):
             if is_blank(row["Days"]) or is_blank(row["Message"]):
                 bad_rows[sheet["title"]].append(n)

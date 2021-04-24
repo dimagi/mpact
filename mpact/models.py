@@ -38,6 +38,8 @@ class GroupChat(ChatBase):
     """
     title = models.TextField()
     participant_count = models.IntegerField(default=0)
+    schedule_start_date = models.DateField(default=timezone.now)
+    schedule_start_time = models.TimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.id} - {self.title}"
