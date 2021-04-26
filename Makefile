@@ -27,7 +27,7 @@ superuser: ## Get a Django shell
 test: ## Run Django tests
 	@docker-compose exec web python manage.py test
 
-init: start migrate superuser  ## Quickly get up and running (start containers, migrate DB, create superuser)
+init: start npm-install npm-dev migrate superuser  ## Quickly get up and running (start containers, build front-end migrate DB, create superuser)
 
 npm-install: ## Runs npm install in the container
 	@docker-compose exec web npm install
