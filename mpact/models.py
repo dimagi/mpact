@@ -20,17 +20,26 @@ class Profile(models.Model):
     phone = models.CharField(max_length=20, validators=[phone_regex, validate_phone])
 
 
-class Chat(models.Model):
+class ChatBase(models.Model):
+    """
+    Represents a telegram chat, which could be a group or 1:1 chat (individual)
+    """
+    id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the chat')
+    messages_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        abstract = True
+
+
+class GroupChat(ChatBase):
     """
     Represents a telegram group
     """
-    id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the chat')
     title = models.TextField()
-    created_at = models.DateTimeField()
-    start_date = models.DateField(default=timezone.now)
-    start_time = models.TimeField(default=timezone.now)
-    messages_count = models.IntegerField(default=0)
     participant_count = models.IntegerField(default=0)
+    schedule_start_date = models.DateField(default=timezone.now)
+    schedule_start_time = models.TimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.id} - {self.title}"
@@ -41,25 +50,24 @@ class Bot(models.Model):
     username = models.TextField()
     first_name = models.TextField()
     last_name = models.TextField(null=True)
-    chats = models.ManyToManyField(Chat, through="ChatBot")
+    chats = models.ManyToManyField(GroupChat, through="ChatBot")
 
     def __str__(self):
         return f"{self.id} - {self.username}"
 
 
 class ChatBot(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    chat = models.ForeignKey(GroupChat, on_delete=models.CASCADE)
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"chat_id: {self.chat.id} - bot_username: {self.bot.username}"
 
 
-class Individual(models.Model):
+class IndividualChat(ChatBase):
     """
     Represents a telegram 1:1 conversation.
     """
-    id = models.IntegerField(primary_key=True)
     username = models.TextField(null=True)
     first_name = models.TextField()
     last_name = models.TextField(null=True)
@@ -70,7 +78,6 @@ class Individual(models.Model):
     address = models.TextField(null=True)
     notes = models.TextField(null=True)
     bots = models.ManyToManyField(Bot, through="BotIndividual")
-    messages_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.id} - {self.first_name}"
@@ -80,7 +87,7 @@ class BotIndividual(models.Model):
     bot = models.ForeignKey(
         Bot, related_name="bot_individuals", on_delete=models.CASCADE
     )
-    individual = models.ForeignKey(Individual, on_delete=models.CASCADE)
+    individual = models.ForeignKey(IndividualChat, on_delete=models.CASCADE)
 
     def __str__(self):
         return (

@@ -13,9 +13,9 @@ from telethon.tl import types
 from mpact.models import (
     Bot,
     BotIndividual,
-    Chat,
+    GroupChat,
     ChatBot,
-    Individual,
+    IndividualChat,
     User,
     UserChatUnread,
 )
@@ -58,7 +58,7 @@ async def chat_handler(event):
             serializer = ChatSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             # add newly created group details in the database
-            chat = Chat.objects.create(**data)
+            chat = GroupChat.objects.create(**data)
             for user in event.action_message.action.users:
                 user_details = await bot_client.get_entity(user)
                 current_bot = await bot_client.get_me()
@@ -82,7 +82,7 @@ async def chat_handler(event):
                 UserChatUnread.objects.create(user_id=user.pk, room_id=data["id"])
 
         elif event.new_title:
-            chat = get_or_none(Chat, id=event.action_message.peer_id.chat_id)
+            chat = get_or_none(GroupChat, id=event.action_message.peer_id.chat_id)
             if chat:
                 chat.title = event.new_title
                 chat.save()
@@ -98,7 +98,7 @@ async def chat_handler(event):
 
 
 def increment_decrement_participant_count(event, operator):
-    chat = get_or_none(Chat, id=abs(event.chat_id))
+    chat = get_or_none(GroupChat, id=abs(event.chat_id))
     if chat:
         if operator == "+":
             chat.participant_count += len(event.users)
@@ -125,7 +125,7 @@ async def incoming_message_handler(event):
         # check if the message is from individual(PeerUser) or group(PeerChat) chat
         if isinstance(event.message.peer_id, types.PeerUser):
             msg_data[FROM_GROUP] = False
-            if not Individual.objects.filter(id=msg_data[ROOM_ID]).exists():
+            if not IndividualChat.objects.filter(id=msg_data[ROOM_ID]).exists():
                 # creating records in the UserChatUnread model for maintaining
                 # unread count for each user and individual chat.
                 for user in User.objects.all():
@@ -154,7 +154,7 @@ async def start_handler(event, channel_layer, msg_data):
 
     bot = Bot.objects.get(id=current_bot.id)
 
-    individual, i_created = Individual.objects.get_or_create(
+    individual, i_created = IndividualChat.objects.get_or_create(
         id=user_details.id,
         defaults={
             USERNAME: user_details.username,

@@ -20,7 +20,7 @@ from telegram_bot.constants import (
 from telegram_bot.logger import logger
 
 from .csv_serializer import Serializer as CSVSerializer
-from .models import Chat, Message
+from .models import GroupChat, Message
 from .serializers import CustomTokenObtainPairSerializer
 from .services import (
     create_flagged_message,
@@ -138,7 +138,7 @@ class ScheduleMessages(APIView):
         """
         headers = ["Days", "Message", "Comment"]
         databook = tablib.Databook()
-        for chat in Chat.objects.all():
+        for chat in GroupChat.objects.all():
             sheet = tablib.Dataset(headers=headers)
             sheet.title = f"{chat.title}|{chat.id}"
             databook.add_sheet(sheet)

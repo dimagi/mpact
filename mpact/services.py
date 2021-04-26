@@ -40,10 +40,10 @@ from telegram_bot.utils import exception, increment_messages_count, increment_me
 
 from .models import (
     BotIndividual,
-    Chat,
+    GroupChat,
     ChatBot,
     FlaggedMessage,
-    Individual,
+    IndividualChat,
     Message,
     UserChatUnread,
 )
@@ -91,7 +91,7 @@ async def send_msg(room_id, message, from_group=None):
         chat_object = get_chat_by_telegram_id(room_id)
 
         # dynamically set from_group or ensure explicit param correctly identified the chat type
-        computed_from_group = isinstance(chat_object, Chat)
+        computed_from_group = isinstance(chat_object, GroupChat)
         if from_group is None:
             from_group = computed_from_group
         elif from_group != computed_from_group:
@@ -272,12 +272,12 @@ def schedule_messages(xlsx_file):
     for sheet in sheets:
         try:
             receiver_id = int(sheet["title"].split('|')[-1])
-            chat = Chat.objects.get(id=receiver_id)
-        except (Chat.DoesNotExist, TypeError, ValueError):
+            chat = GroupChat.objects.get(id=receiver_id)
+        except (GroupChat.DoesNotExist, TypeError, ValueError):
             bad_titles.append(sheet["title"])
             continue
 
-        start_date_time = parse(f"{chat.start_date} {chat.start_time}")
+        start_date_time = parse(f"{chat.schedule_start_date} {chat.schedule_start_time}")
         for n, row in enumerate(sheet["data"], start=1):
             if is_blank(row["Days"]) or is_blank(row["Message"]):
                 bad_rows[sheet["title"]].append(n)
@@ -345,8 +345,8 @@ async def get_individual_details(individual_id):
     Return the individual details
     """
     try:
-        individual_details = Individual.objects.get(id=individual_id)
-    except Individual.DoesNotExist:
+        individual_details = IndividualChat.objects.get(id=individual_id)
+    except IndividualChat.DoesNotExist:
         return {
             DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
             STATUS: status.HTTP_404_NOT_FOUND,
@@ -365,8 +365,8 @@ async def update_individual_details(individual_id, data):
     Return the updated individual details
     """
     try:
-        individual_details = Individual.objects.get(id=individual_id)
-    except Individual.DoesNotExist:
+        individual_details = IndividualChat.objects.get(id=individual_id)
+    except IndividualChat.DoesNotExist:
         return {
             DATA: {MESSAGE: RECORD_NF, IS_SUCCESS: False},
             STATUS: status.HTTP_404_NOT_FOUND,
