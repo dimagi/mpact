@@ -279,7 +279,9 @@ def schedule_messages(xlsx_file):
 
         start_date_time = parse(f"{chat.schedule_start_date} {chat.schedule_start_time}")
         for n, row in enumerate(sheet["data"], start=1):
-            if is_blank(row["Days"]) or is_blank(row["Message"]):
+            days = row["Days"]
+            message = row["Message"]
+            if is_blank(days) or is_blank(message):
                 bad_rows[sheet["title"]].append(n)
                 continue
             # fixme: this appears like it wouldn't work if the day or time changed in the sheet
@@ -288,13 +290,13 @@ def schedule_messages(xlsx_file):
             # except that there is also not a super-easy way to pull out the schedule for a chat
             # after it is created. we likely need more modeling support to make this work well.
             schedule, __ = ClockedSchedule.objects.get_or_create(
-                clocked_time=start_date_time + timedelta(days=row["Days"]),
+                clocked_time=start_date_time + timedelta(days=days),
             )
             PeriodicTask.objects.create(
                 clocked=schedule,
                 name=str(uuid.uuid4()),
                 task="mpact.tasks.send_msgs",
-                args=json.dumps([receiver_id, row["Message"]]),
+                args=json.dumps([receiver_id, message]),
                 one_off=True,
             )
 
