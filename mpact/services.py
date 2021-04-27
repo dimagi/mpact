@@ -45,7 +45,7 @@ from .models import (
     FlaggedMessage,
     IndividualChat,
     Message,
-    UserChatUnread,
+    UserChatUnread, ScheduledMessage,
 )
 from .serializers import (
     ChatBotSerializer,
@@ -281,6 +281,7 @@ def schedule_messages(xlsx_file):
         for n, row in enumerate(sheet["data"], start=1):
             days = row["Days"]
             message = row["Message"]
+            comment = row["Comment"]
             if is_blank(days) or is_blank(message):
                 bad_rows[sheet["title"]].append(n)
                 continue
@@ -289,6 +290,12 @@ def schedule_messages(xlsx_file):
             # a simple workaround could be to clear the schedule for the chat prior to starting
             # except that there is also not a super-easy way to pull out the schedule for a chat
             # after it is created. we likely need more modeling support to make this work well.
+            ScheduledMessage.objects.create(
+                group=group,
+                days=days,
+                message=message,
+                comment=comment,
+            )
             schedule, __ = ClockedSchedule.objects.get_or_create(
                 clocked_time=start_date_time + timedelta(days=days),
             )
