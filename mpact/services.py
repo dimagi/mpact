@@ -272,12 +272,12 @@ def schedule_messages(xlsx_file):
     for sheet in sheets:
         try:
             receiver_id = int(sheet["title"].split('|')[-1])
-            chat = GroupChat.objects.get(id=receiver_id)
+            group = GroupChat.objects.get(id=receiver_id)
         except (GroupChat.DoesNotExist, TypeError, ValueError):
             bad_titles.append(sheet["title"])
             continue
 
-        start_date_time = parse(f"{chat.schedule_start_date} {chat.schedule_start_time}")
+        start_date_time = parse(f"{group.schedule_start_date} {group.schedule_start_time}")
         for n, row in enumerate(sheet["data"], start=1):
             days = row["Days"]
             message = row["Message"]
