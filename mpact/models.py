@@ -128,3 +128,13 @@ class UserChatUnread(models.Model):
 
     def __str__(self):
         return f"{self.user_id} - {self.room_id} - {self.unread_count}"
+
+
+class ScheduledMessage(models.Model):
+    """
+    Tracks the "schedule" for a particular group chat.
+    """
+    group = models.ForeignKey(GroupChat, on_delete=models.CASCADE)
+    day = models.PositiveIntegerField(help_text='How many days after a group start date to send this message')
+    message = models.TextField()
+    comment = models.TextField(blank=True)
