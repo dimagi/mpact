@@ -21,6 +21,9 @@ migrate: ## Run DB migrations in the container
 shell: ## Get a Django shell
 	@docker-compose exec web python manage.py shell
 
+dbshell: ## Get a Database shell
+	@docker-compose exec db psql -U postgres mpact
+
 superuser: ## Get a Django shell
 	@docker-compose exec web python manage.py createsuperuser
 
