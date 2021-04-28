@@ -1,14 +1,10 @@
 import json
-import uuid
 from collections import defaultdict
 from contextlib import asynccontextmanager
-from datetime import timedelta
 
 import tablib
 from channels.layers import get_channel_layer
-from dateutil.parser import parse
 from django.db.models import F
-from django_celery_beat.models import ClockedSchedule, PeriodicTask
 from rest_framework import status
 from telethon import TelegramClient
 from telethon.errors import MessageIdInvalidError
@@ -36,7 +32,7 @@ from telegram_bot.constants import (
     WEBSOCKET_ROOM_NAME,
 )
 from telegram_bot.logger import logger
-from telegram_bot.utils import exception, increment_messages_count, increment_message_count
+from telegram_bot.utils import exception, increment_message_count
 
 from .models import (
     BotIndividual,
@@ -47,6 +43,7 @@ from .models import (
     Message,
     UserChatUnread, ScheduledMessage,
 )
+from .scheduling import rebuild_schedule_for_group
 from .serializers import (
     ChatBotSerializer,
     FlaggedMessageSerializer,
@@ -277,11 +274,11 @@ def schedule_messages(xlsx_file):
             bad_titles.append(sheet["title"])
             continue
 
-        start_date_time = parse(f"{group.schedule_start_date} {group.schedule_start_time}")
+        messages = []
         for n, row in enumerate(sheet["data"], start=1):
             days = row["Days"]
             message = row["Message"]
-            comment = row["Comment"]
+            comment = row["Comment"] or ''
             if is_blank(days) or is_blank(message):
                 bad_rows[sheet["title"]].append(n)
                 continue
@@ -290,22 +287,13 @@ def schedule_messages(xlsx_file):
             # a simple workaround could be to clear the schedule for the chat prior to starting
             # except that there is also not a super-easy way to pull out the schedule for a chat
             # after it is created. we likely need more modeling support to make this work well.
-            ScheduledMessage.objects.create(
+            messages.append(ScheduledMessage.objects.create(
                 group=group,
-                days=days,
+                day=days,
                 message=message,
                 comment=comment,
-            )
-            schedule, __ = ClockedSchedule.objects.get_or_create(
-                clocked_time=start_date_time + timedelta(days=days),
-            )
-            PeriodicTask.objects.create(
-                clocked=schedule,
-                name=str(uuid.uuid4()),
-                task="mpact.tasks.send_msgs",
-                args=json.dumps([receiver_id, message]),
-                one_off=True,
-            )
+            ))
+        rebuild_schedule_for_group(group, messages)
 
     return {
         DATA: {
