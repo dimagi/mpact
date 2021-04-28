@@ -275,6 +275,9 @@ def schedule_messages(xlsx_file):
             continue
 
         messages = []
+
+        # disable all currently scheduled messages and recreate new ones (even if not changed)
+        group.scheduled_messages.update(enabled=False)
         for n, row in enumerate(sheet["data"], start=1):
             days = row["Days"]
             message = row["Message"]
@@ -282,11 +285,7 @@ def schedule_messages(xlsx_file):
             if is_blank(days) or is_blank(message):
                 bad_rows[sheet["title"]].append(n)
                 continue
-            # fixme: this appears like it wouldn't work if the day or time changed in the sheet
-            # i.e. it would create a new schedule object but not delete the previous one.
-            # a simple workaround could be to clear the schedule for the chat prior to starting
-            # except that there is also not a super-easy way to pull out the schedule for a chat
-            # after it is created. we likely need more modeling support to make this work well.
+
             messages.append(ScheduledMessage.objects.create(
                 group=group,
                 day=days,

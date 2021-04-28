@@ -27,8 +27,8 @@ admin.site.register(UserChatUnread)
 
 @admin.register(ScheduledMessage)
 class ScheduledMessageAdmin(admin.ModelAdmin):
-    list_display = ['message', 'day', 'group', 'comment']
-    list_filter = ['group']
+    list_display = ['message', 'day', 'group', 'comment', 'enabled']
+    list_filter = ['group', 'enabled']
 
 
 class CustomPeriodicTask(PeriodicTask):

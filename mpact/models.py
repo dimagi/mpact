@@ -145,3 +145,4 @@ class ScheduledMessage(BaseModel):
     day = models.PositiveIntegerField(help_text='How many days after a group start date to send this message')
     message = models.TextField()
     comment = models.TextField(blank=True)
+    enabled = models.BooleanField(default=True)

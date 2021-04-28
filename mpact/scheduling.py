@@ -6,7 +6,7 @@ from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 
 def rebuild_schedule_for_group(group, messages=None):
-    messages = messages or group.scheduled_messages.all()
+    messages = messages or group.scheduled_messages.filter(enabled=True)
     disable_tasks_for_group(group)
     create_new_tasks_for_group(group, messages)
 
