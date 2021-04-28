@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import timedelta
 from dateutil.parser import parse
+from django.utils import timezone
 from django.utils.timezone import make_aware
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
@@ -28,16 +29,19 @@ def create_new_tasks_for_group(group, messages):
     # groups to set their own timezones
     start_date_time = make_aware(start_date_time)
     for message in messages:
-        schedule, __ = ClockedSchedule.objects.get_or_create(
-            clocked_time=start_date_time + timedelta(days=message.day),
-        )
-        PeriodicTask.objects.create(
-            clocked=schedule,
-            name=str(uuid.uuid4()),
-            task="mpact.tasks.send_msgs",
-            args=json.dumps([group.id, message.message]),
-            one_off=True,
-        )
+        # only schedule things in the future otherwise past messages go out immediately
+        message_time = start_date_time + timedelta(days=message.day)
+        if message_time > timezone.now():
+            schedule, __ = ClockedSchedule.objects.get_or_create(
+                clocked_time=message_time,
+            )
+            PeriodicTask.objects.create(
+                clocked=schedule,
+                name=str(uuid.uuid4()),
+                task="mpact.tasks.send_msgs",
+                args=json.dumps([group.id, message.message]),
+                one_off=True,
+            )
 
 
 def get_periodic_tasks_for_group(group):

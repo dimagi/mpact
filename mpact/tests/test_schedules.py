@@ -34,3 +34,18 @@ class ScheduleTestCase(TestCase):
         self.assertEqual(12, ClockedSchedule.objects.count())
         self.assertEqual(12, PeriodicTask.objects.count())
         self.assertEqual(6, PeriodicTask.objects.filter(enabled=True).count())
+
+    def test_reschedule_in_past(self):
+        group = GroupChat.objects.create(id=TEST_GROUP_ID)
+        run_test_schedule()
+        group.schedule_start_date = timezone.now().date() - timedelta(days=5)
+        group.schedule_start_time = timezone.now().time()
+        group.save()
+        # do the schedule again, it should disable the previously created ones,
+        # and only create the last two messages (which are scheduled > 5 days out)
+        run_test_schedule()
+        self.assertEqual(12, ScheduledMessage.objects.count())
+        self.assertEqual(6, ScheduledMessage.objects.filter(enabled=True).count())
+        self.assertEqual(8, ClockedSchedule.objects.count())
+        self.assertEqual(8, PeriodicTask.objects.count())
+        self.assertEqual(2, PeriodicTask.objects.filter(enabled=True).count())
