@@ -88,7 +88,7 @@ class GetMessages(APIView):
 
 class Dialog(APIView):
     """
-    It is used to retrive dialogs(open conversations)
+    It is used to retrieve dialogs (open conversations)
     """
 
     permission_classes = (IsAuthenticated,)
