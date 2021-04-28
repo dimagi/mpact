@@ -20,3 +20,11 @@ def rebuild_schedule_for_group(group, messages=None):
             args=json.dumps([group.id, message.message]),
             one_off=True,
         )
+
+
+def get_periodic_tasks_for_group(group):
+    # the args column looks like this: [503371387, "Hello world!"]
+    # so we query for it starting with a bracket and ending with a comma followed by a space and quote
+    return PeriodicTask.objects.filter(
+        args__contains=f'[{group.id}, "'
+    ).order_by('clocked__clocked_time')
