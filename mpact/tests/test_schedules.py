@@ -16,6 +16,15 @@ class ScheduleTestCase(TestCase):
         self.assertEqual([], result['bad titles'])
         self.assertEqual(6, ScheduledMessage.objects.count())
         self.assertEqual(6, ScheduledMessage.objects.filter(enabled=True).count())
+        # spot check
+        message = ScheduledMessage.objects.get(group=group, day=1)
+        self.assertEqual('Hello world!', message.message)
+        self.assertEqual('A comment', message.comment)
+        message_2 = ScheduledMessage.objects.get(group=group, day=2)
+        self.assertEqual('Hello again', message_2.message)
+        self.assertEqual('A different comment', message_2.comment)
+
+        # also rudimentarily check periodic task creation
         self.assertEqual(6, ClockedSchedule.objects.count())
         self.assertEqual(6, PeriodicTask.objects.count())
         self.assertEqual(6, PeriodicTask.objects.filter(enabled=True).count())
