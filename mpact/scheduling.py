@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import timedelta
 from dateutil.parser import parse
+from django.utils.timezone import make_aware
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 
@@ -23,6 +24,9 @@ def disable_tasks_for_group(group):
 
 def create_new_tasks_for_group(group, messages):
     start_date_time = parse(f"{group.schedule_start_date} {group.schedule_start_time}")
+    # silences timezone warnings, though we may need to be smarter in the future and allow
+    # groups to set their own timezones
+    start_date_time = make_aware(start_date_time)
     for message in messages:
         schedule, __ = ClockedSchedule.objects.get_or_create(
             clocked_time=start_date_time + timedelta(days=message.day),
