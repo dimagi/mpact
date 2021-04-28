@@ -28,7 +28,7 @@ superuser: ## Get a Django shell
 	@docker-compose exec web python manage.py createsuperuser
 
 test: ## Run Django tests
-	@docker-compose exec web python manage.py test
+	@docker-compose exec web python manage.py test --keepdb
 
 init: start npm-install npm-build migrate superuser  ## Quickly get up and running (start containers, build front-end migrate DB, create superuser)
 
