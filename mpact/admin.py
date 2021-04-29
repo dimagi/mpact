@@ -12,6 +12,7 @@ from .models import (
     IndividualChat,
     Message,
     UserChatUnread,
+    ScheduledMessage,
 )
 
 admin.site.register(GroupChat)
@@ -22,6 +23,12 @@ admin.site.register(BotIndividual)
 admin.site.register(Message)
 admin.site.register(FlaggedMessage)
 admin.site.register(UserChatUnread)
+
+
+@admin.register(ScheduledMessage)
+class ScheduledMessageAdmin(admin.ModelAdmin):
+    list_display = ['message', 'day', 'group', 'comment', 'enabled']
+    list_filter = ['group', 'enabled']
 
 
 class CustomPeriodicTask(PeriodicTask):

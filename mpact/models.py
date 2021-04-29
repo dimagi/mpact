@@ -11,6 +11,14 @@ def validate_phone(username):
     return username
 
 
+class BaseModel(models.Model):
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        abstract = True
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_regex = RegexValidator(
@@ -20,13 +28,12 @@ class Profile(models.Model):
     phone = models.CharField(max_length=20, validators=[phone_regex, validate_phone])
 
 
-class ChatBase(models.Model):
+class ChatBase(BaseModel):
     """
     Represents a telegram chat, which could be a group or 1:1 chat (individual)
     """
     id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the chat')
     messages_count = models.IntegerField(default=0)
-    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         abstract = True
@@ -45,7 +52,7 @@ class GroupChat(ChatBase):
         return f"{self.id} - {self.title}"
 
 
-class Bot(models.Model):
+class Bot(BaseModel):
     id = models.IntegerField(primary_key=True)
     username = models.TextField()
     first_name = models.TextField()
@@ -56,7 +63,7 @@ class Bot(models.Model):
         return f"{self.id} - {self.username}"
 
 
-class ChatBot(models.Model):
+class ChatBot(BaseModel):
     chat = models.ForeignKey(GroupChat, on_delete=models.CASCADE)
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
 
@@ -83,7 +90,7 @@ class IndividualChat(ChatBase):
         return f"{self.id} - {self.first_name}"
 
 
-class BotIndividual(models.Model):
+class BotIndividual(BaseModel):
     bot = models.ForeignKey(
         Bot, related_name="bot_individuals", on_delete=models.CASCADE
     )
@@ -95,7 +102,7 @@ class BotIndividual(models.Model):
         )
 
 
-class Message(models.Model):
+class Message(BaseModel):
     telegram_msg_id = models.IntegerField()
     sender_id = models.IntegerField()
     sender_name = models.TextField()
@@ -109,7 +116,7 @@ class Message(models.Model):
         return f"{self.room_id} - {self.sender_name} - {self.message}"
 
 
-class FlaggedMessage(models.Model):
+class FlaggedMessage(BaseModel):
     message = models.OneToOneField(Message, on_delete=models.CASCADE)
     date = models.DateTimeField(default=timezone.now)
     group_id = models.IntegerField(null=True)
@@ -118,7 +125,7 @@ class FlaggedMessage(models.Model):
         return f"{self.message.id} - {self.message.room_id}"
 
 
-class UserChatUnread(models.Model):
+class UserChatUnread(BaseModel):
     user_id = models.IntegerField()
     room_id = models.IntegerField()
     unread_count = models.IntegerField(default=0)
@@ -128,3 +135,14 @@ class UserChatUnread(models.Model):
 
     def __str__(self):
         return f"{self.user_id} - {self.room_id} - {self.unread_count}"
+
+
+class ScheduledMessage(BaseModel):
+    """
+    Tracks the "schedule" for a particular group chat.
+    """
+    group = models.ForeignKey(GroupChat, on_delete=models.CASCADE, related_name='scheduled_messages')
+    day = models.PositiveIntegerField(help_text='How many days after a group start date to send this message')
+    message = models.TextField()
+    comment = models.TextField(blank=True)
+    enabled = models.BooleanField(default=True)
