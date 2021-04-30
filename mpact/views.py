@@ -141,6 +141,8 @@ class ScheduleMessages(APIView):
         for group in GroupChat.objects.all():
             sheet = tablib.Dataset(headers=headers)
             sheet.title = f"{group.title}|{group.id}"
+            for message in group.scheduled_messages.filter(enabled=True):
+                sheet.append((message.day, message.message, message.comment))
             databook.add_sheet(sheet)
 
         xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
