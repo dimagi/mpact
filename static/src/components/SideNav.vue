@@ -3,9 +3,8 @@
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
-      <!-- <div class='cal_down h-100' @click='downloadSchedules()' title='Download empty schedules'></div> -->
-      <a href="/api/schedules.xlsx" target="_blank" class="cal_down h-100"></a><!-- TODO: Fix downloadSchedules() -->
-      <!-- <div class='cal_up h-100' @click='uploadSchedules()' title='Upload schedules'></div> -->
+      <div class="cal_down h-100" @click="downloadSchedules()" title="Download schedules"></div>
+<!--      <div class='cal_up h-100' @click='uploadSchedules()' title='Upload schedules'></div>-->
       <div class='download h-100' @click='exportMessages()' title='Export'></div>
       <div class='flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
       <div class='logout h-100' @click='logout()' title='Log out'></div>
@@ -81,11 +80,16 @@ export default {
     },
     async downloadSchedules() {
       try {
-        const response = await Api.get('/schedules.xlsx');
+        const response = await Api({
+          method: 'get',
+          url: '/schedules.xlsx',
+          responseType: 'blob'
+        });
         const blob = new Blob(
             [response.data],
             { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
         )
+        // https://stackoverflow.com/a/9834261/8207
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
         link.download = 'schedules.xlsx'

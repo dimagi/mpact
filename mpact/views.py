@@ -129,7 +129,7 @@ class FlagMessageDelete(APIView):
 
 
 class ScheduleMessages(APIView):
-    # permission_classes = (IsAuthenticated,)  # TODO: Fix downloadSchedules() in SideNav.vue
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         """
