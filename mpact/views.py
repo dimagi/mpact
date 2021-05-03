@@ -129,7 +129,7 @@ class FlagMessageDelete(APIView):
 
 
 class ScheduleMessages(APIView):
-    # permission_classes = (IsAuthenticated,)  # TODO: Fix downloadSchedules() in SideNav.vue
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         """
@@ -138,9 +138,11 @@ class ScheduleMessages(APIView):
         """
         headers = ["Days", "Message", "Comment"]
         databook = tablib.Databook()
-        for chat in GroupChat.objects.all():
+        for group in GroupChat.objects.all():
             sheet = tablib.Dataset(headers=headers)
-            sheet.title = f"{chat.title}|{chat.id}"
+            sheet.title = f"{group.title}|{group.id}"
+            for message in group.scheduled_messages.filter(enabled=True):
+                sheet.append((message.day, message.message, message.comment))
             databook.add_sheet(sheet)
 
         xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
