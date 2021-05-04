@@ -190,8 +190,10 @@ export default {
   }
 
   .sidebar-nav-icon {
-    width: 15%;
-    background-size: 20px;
+    width: 25px;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     cursor: pointer;
