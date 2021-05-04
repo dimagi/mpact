@@ -4,8 +4,8 @@
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
       <div class="cal_down h-100" @click="downloadSchedules()" title="Download schedules"></div>
-      <label class='cal_up h-100' class="file-upload-label" title='Upload schedules' for="schedule-upload">
-        <input type="file" id="schedule-upload" ref="schedule-upload" multiple v-on:change="uploadSchedules()"/>
+      <label class='cal_up h-100 file-upload-label' title='Upload schedules' for="schedule-file">
+        <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
       </label>
       <div class='download h-100' @click='exportMessages()' title='Export'></div>
       <div class='flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
@@ -103,8 +103,15 @@ export default {
       }
     },
     async uploadSchedules() {
-      console.log('upload schedules');
-      // TODO: ... await Api.post('/schedule_messages') ...
+      const scheduleFile = document.getElementById("schedule-file").files[0];
+      const formData = new FormData();
+      formData.append("file", scheduleFile);
+      const response = await Api.post('/schedule_messages', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log(response);
     },
     async exportMessages() {
       try {
