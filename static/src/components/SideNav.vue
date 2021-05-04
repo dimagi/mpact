@@ -3,13 +3,13 @@
     <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
-      <div class="cal_down h-100" @click="downloadSchedules()" title="Download schedules"></div>
-      <label class='cal_up h-100 file-upload-label' title='Upload schedules' for="schedule-file">
+      <div class="sidebar-nav-icon cal_down h-100" @click="downloadSchedules()" title="Download schedules"></div>
+      <label class='sidebar-nav-icon cal_up h-100 file-upload-label' title='Upload schedules' for="schedule-file">
         <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
       </label>
-      <div class='download h-100' @click='exportMessages()' title='Export'></div>
-      <div class='flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
-      <div class='logout h-100' @click='logout()' title='Log out'></div>
+      <div class='sidebar-nav-icon download h-100' @click='exportMessages()' title='Export'></div>
+      <div class='sidebar-nav-icon flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
+      <div class='sidebar-nav-icon logout h-100' @click='logout()' title='Log out'></div>
     </div>
     <div class='chat-contacts'>
       <div class='side-nav-row mt-2' v-for='(mainObj, i) in contacts' :key='i'>
@@ -189,49 +189,32 @@ export default {
     width: 85%;
   }
 
-  .cal_down {
+  .sidebar-nav-icon {
     width: 15%;
     background-size: 20px;
     background-position: center;
     background-repeat: no-repeat;
-    background-image: url('../assets/cal_down.svg');
     cursor: pointer;
+  }
+
+  .cal_down {
+    background-image: url('../assets/cal_down.svg');
   }
 
   .cal_up {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/cal_up.svg');
-    cursor: pointer;
   }
 
   .download {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/download.svg');
-    cursor: pointer;
   }
 
   .flagged {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/flag.svg');
-    cursor: pointer;
   }
 
   .logout {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/logout.svg');
-    cursor: pointer;
   }
 
   .channel-name {
