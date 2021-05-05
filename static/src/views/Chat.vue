@@ -69,6 +69,10 @@ export default {
       offset: 0,
       lastMessage: null,
       showNewMessagesDivider: false,
+      textMessages: {
+        ROOMS_EMPTY: 'Add your configured bot to a Telegram group and refresh to get started',
+        ROOM_EMPTY: 'No group or individual chat selected',
+      },
       messageActions: [
         {
           name: 'flagMessage',
@@ -145,8 +149,8 @@ export default {
     },
     async getGroupAndIndividualChats() {
       try {
-        const data = await this.$http.get('/dialogs');
-        this.groupAndIndividualChats = data.data.dialogs;
+        const response = await this.$http.get('/dialogs');
+        this.groupAndIndividualChats = response.data.dialogs;
         if(this.groupAndIndividualChats.length > 0) {
           this.botId = this.groupAndIndividualChats[0].bot.id
         }
