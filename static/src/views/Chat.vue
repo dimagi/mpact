@@ -28,6 +28,11 @@
                 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
             </svg>
           </template>
+          <template v-slot:room-list-item="{room}">
+            <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
+              {{room.roomName}}
+            </div>
+          </template>
         </chat-window>
       </div>
     </div>
@@ -519,5 +524,41 @@ export default {
   left: 22px;
   width: 12px;
   height: 12px;
+}
+
+/* A little CSS hack to add some custom styles */
+.vac-room-item > .mpact-custom-room-list-item {
+  /* Repeat the parent CSS properties */
+  position: relative;
+  min-height: 71px;
+  border-radius: 8px;
+  padding: 0 16px;
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+
+  color: black;
+
+  /* A little CSS hack to cover the list item */
+  left: -16px;
+  margin-right: -32px;
+}
+
+.vac-room-item > .group-chat {
+  background-color: #F6FDF7;
+}
+
+.vac-room-item > .individual-chat {
+  background-color: #F6F9FD;
+}
+
+/* Tetradic https://www.canva.com/colors/color-wheel/  */
+.vac-room-item > .group-chat:hover,
+.vac-room-selected > .group-chat {
+  background-color: #E5FAE6;
+}
+.vac-room-item > .individual-chat:hover,
+.vac-room-selected > .individual-chat {
+  background-color: #CCDDF4;
 }
 </style>
