@@ -133,8 +133,8 @@ class ScheduleMessages(APIView):
 
     def get(self, request):
         """
-        Returns an empty scheduled messages file with a sheet for each
-        group chat.
+        Returns the scheduled messages file with a sheet for each group chat
+        and any messages that have been scheduled for that chat.
         """
         headers = ["Days", "Message", "Comment"]
         databook = tablib.Databook()

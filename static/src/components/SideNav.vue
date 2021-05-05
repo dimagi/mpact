@@ -4,7 +4,9 @@
     d-flex justify-content-around'>
       <div class='text-truncate username text-left capitalize'>{{ username }}</div>
       <div class="cal_down h-100" @click="downloadSchedules()" title="Download schedules"></div>
-<!--      <div class='cal_up h-100' @click='uploadSchedules()' title='Upload schedules'></div>-->
+      <label class='cal_up h-100 file-upload-label' title='Upload schedules' for="schedule-file">
+        <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
+      </label>
       <div class='download h-100' @click='exportMessages()' title='Export'></div>
       <div class='flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
       <div class='logout h-100' @click='logout()' title='Log out'></div>
@@ -101,7 +103,15 @@ export default {
       }
     },
     async uploadSchedules() {
-      // TODO: ... await Api.post('/schedule_messages') ...
+      const scheduleFile = document.getElementById("schedule-file").files[0];
+      const formData = new FormData();
+      formData.append("file", scheduleFile);
+      const response = await Api.post('/schedule_messages', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log(response);
     },
     async exportMessages() {
       try {
@@ -238,5 +248,15 @@ export default {
 
   .active-chat {
     background: #e5effa !important;
+  }
+
+  /* https://stackoverflow.com/a/25825731/8207 */
+  input[type="file"] {
+    display: none;
+  }
+
+  /* override default margin styling on label */
+  label.file-upload-label {
+    margin-bottom: 0;
   }
 </style>
