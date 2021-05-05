@@ -16,7 +16,7 @@
           :rooms-loaded='roomsLoaded'
           :styles='styles'
           :message-actions='messageActions' 
-          @fetch-messages='messages.length>=50 ? loadOldMessages($event) : null' 
+          @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
           :showNewMessagesDivider='showNewMessagesDivider'
           @send-message='sendMessage($event)' 
           @message-action-handler='messageActionHandler($event)'
@@ -110,8 +110,9 @@ export default {
     }
   },
   watch:{
-    $route(to, from) {
+    groupId(to, from) {
       // TODO: Handle changes in the query
+      console.log("Need to load",to);
     }
   },
   async mounted() {
@@ -259,6 +260,17 @@ export default {
         await MessageService.deleteMessage(params);
       } catch (err) {
         console.error(err);
+      }
+    },
+    async changeChat({room}) {
+      const roomId = room.roomId;
+      const isGroup = (room.type === 'group-chat');
+
+      if(this.roomId === roomId) {
+        // TODO: 
+        console.log('load old messages!');
+      } else { 
+        this.$router.push({path:'/chat/', query: { roomId: roomId, isGroup:isGroup, groupId: roomId || null}});
       }
     },
     async loadOldMessages({
