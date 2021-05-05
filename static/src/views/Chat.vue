@@ -2,7 +2,7 @@
   <div class='vw-100 vh-100'>
     <div class='row m-0 p-0'>
       <div class='col-2 p-0 z-index__25'>
-        <side-nav :username='username' :contacts='contacts' @getIndividualMessages='getIndividualMessages($event)'
+        <side-nav :username='username' :contacts='groupAndIndividualChats' @getIndividualMessages='getIndividualMessages($event)'
           @getGroupMessages='getGroupMessages($event)' />
       </div>
       <Toast :text='toastMessage' :hasError='showToastError' />
@@ -59,7 +59,7 @@ export default {
       showToastError: false,
       rooms: [],
       currentUserId: 1,
-      contacts: [],
+      groupAndIndividualChats: [],
       messagesLoaded: false,
       hideSideNav: true,
       roomName: '',
@@ -100,7 +100,7 @@ export default {
   },
   async mounted() {
     this.resetChatWidget();
-    await this.getContacts();
+    await this.getGroupAndIndividualChats();
     this.username = localStorage.getItem('username') || '';
     this.selectedRoom = this.$route.query.roomId || '';
     this.groupBookmark = this.$route.query.isGroup === 'true' || false;
@@ -143,13 +143,15 @@ export default {
         console.error(err);
       }
     },
-    async getContacts() {
+    async getGroupAndIndividualChats() {
       try {
         const data = await this.$http.get('/dialogs');
-        this.contacts = data.data.dialogs;
-        this.botId = this.contacts[0].bot.id
+        this.groupAndIndividualChats = data.data.dialogs;
+        if(this.groupAndIndividualChats.length > 0) {
+          this.botId = this.groupAndIndividualChats[0].bot.id
+        }
         const unreadMessagesObj = {}
-        this.contacts.forEach((oneGroup) => {
+        this.groupAndIndividualChats.forEach((oneGroup) => {
           oneGroup.bot.bot_individuals.forEach((oneIndividual) => {
             unreadMessagesObj[oneIndividual.individual.id] = oneIndividual.individual.unread_count;
         });
