@@ -20,7 +20,7 @@
           :showNewMessagesDivider='showNewMessagesDivider'
           @send-message='sendMessage($event)' 
           @message-action-handler='messageActionHandler($event)'
-          :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
+          :load-first-room='false' :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
           <template #dropdown-icon>
             <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
               <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
@@ -162,6 +162,29 @@ export default {
         unreadMessagesObj[oneGroup.chat.id] = oneGroup.chat.unread_count;
         })
         this.$store.dispatch('update_unread_messages', unreadMessagesObj)
+
+        // TODO: refactor this code?
+        const formattedRoomStructure = [];
+        const userMap = {}
+        this.groupAndIndividualChats.forEach((d) =>{
+          formattedRoomStructure.push({
+            roomId: d.chat['id'],
+            roomName: d.chat['title'],
+            type: 'group-chat',
+            users: []});
+          d.bot.bot_individuals.forEach((i) =>{
+            userMap[i.individual.id] ={
+              roomId: i.individual.id,
+              roomName: i.individual.first_name,
+              type: 'individual-chat',
+              users: []};
+          });
+        });
+        for(let key in userMap) {
+          formattedRoomStructure.push(userMap[key]);
+        }
+        this.rooms = formattedRoomStructure;
+        this.roomsLoaded = true;
       } catch (err) {
         console.error(err);
       }
