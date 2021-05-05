@@ -12,15 +12,15 @@
           :currentUserId='currentUserId' 
           :rooms='rooms'
           :messages='messages' 
-          :single-room='hideSideNav' 
           :messages-loaded='messagesLoaded' 
+          :rooms-loaded='roomsLoaded'
           :styles='styles'
           :message-actions='messageActions' 
           @fetch-messages='messages.length>=50 ? loadOldMessages($event) : null' 
           :showNewMessagesDivider='showNewMessagesDivider'
           @send-message='sendMessage($event)' 
           @message-action-handler='messageActionHandler($event)'
-          :show-files='false' :show-audio='false' :show-reaction-emojis='false'>
+          :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
           <template #dropdown-icon>
             <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
               <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
@@ -61,7 +61,7 @@ export default {
       currentUserId: 1,
       groupAndIndividualChats: [],
       messagesLoaded: false,
-      hideSideNav: true,
+      roomsLoaded: false,
       roomName: '',
       limit: 50,
       groupView: true,
