@@ -98,8 +98,12 @@ export default {
         link.click()
         URL.revokeObjectURL(link.href)
       } catch (err) {
-        console.error(err);
-        throw err;
+        if (err.response.status == 400) {
+          // todo: add toast / notification here.
+          console.error(err.response.data.message);
+        } else {
+          throw err;
+        }
       }
     },
     async uploadSchedules() {
