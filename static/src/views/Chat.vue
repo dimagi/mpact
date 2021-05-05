@@ -65,7 +65,6 @@ export default {
       roomName: '',
       limit: 50,
       groupView: true,
-      groupId: null,
       offset: 0,
       lastMessage: null,
       showNewMessagesDivider: false,
@@ -101,6 +100,14 @@ export default {
         this.$store.dispatch('update_messages', {roomId: this.selectedRoom, msgs: payload});
       }
     },
+    groupId() {
+      return this.$route.query.groupId || null;
+    }
+  },
+  watch:{
+    $route(to, from) {
+      // TODO: Handle changes in the query
+    }
   },
   async mounted() {
     this.resetChatWidget();
@@ -108,7 +115,6 @@ export default {
     this.username = localStorage.getItem('username') || '';
     this.selectedRoom = this.$route.query.roomId || '';
     this.groupBookmark = this.$route.query.isGroup === 'true' || false;
-    this.groupId = this.$route.query.groupId || null;
     const selectedDiv = document.querySelector(`div[data-id='${this.selectedRoom}']`);
     const groupButton = document.querySelector(`button[data-id='${this.groupId}']`);
     if (this.groupBookmark && (this.groupId === this.selectedRoom)) {
@@ -401,6 +407,9 @@ export default {
       roomId,
       lazy = false,
     }) {
+      // TODO: Why the repeated params?
+      this.$router.push({path:'/chat/', query: { roomId: roomId, isGroup:true, groupId: roomId || null}})
+
       this.groupId = roomId;
       try {
         const {
