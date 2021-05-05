@@ -18,31 +18,10 @@ export default {
       throw err;
     }
   },
-  async getIndividualMessages({
+  async fetchMessages({
     roomId,
     offset,
     limit = 50,
-  }) {
-    try {
-      const response = await Api.get(`messages/${roomId}`, {
-        params: {
-          offset,
-          limit,
-        },
-      });
-      const currentUnreadMessages = store.state.unread_messages;
-      currentUnreadMessages[roomId] = 0
-      store.dispatch('update_unread_messages', currentUnreadMessages)
-      return response;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  },
-  async fetchGroupMessages({
-    roomId,
-    offset,
-    limit,
   }) {
     try {
       const response = await Api.get(`messages/${roomId}`, {

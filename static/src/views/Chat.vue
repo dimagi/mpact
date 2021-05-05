@@ -2,8 +2,8 @@
   <div class='vw-100 vh-100'>
     <div class='row m-0 p-0'>
       <div class='col-2 p-0 z-index__25'>
-        <side-nav :username='username' :contacts='groupAndIndividualChats' @getIndividualMessages='getIndividualMessages($event)'
-          @getGroupMessages='getGroupMessages($event)' />
+        <side-nav :username='username' :contacts='groupAndIndividualChats' @getIndividualMessages='fetchMessages($event)'
+          @getGroupMessages='fetchMessages($event)' />
       </div>
       <Toast :text='toastMessage' :hasError='showToastError' />
       <div class='col-10 p-0'>
@@ -192,6 +192,7 @@ export default {
               users: []};
           });
         });
+        // Even if a user is in multiple group chats, put 'em in the room list once.
         for(let key in userMap) {
           formattedRoomStructure.push(userMap[key]);
         }
@@ -200,6 +201,9 @@ export default {
       } catch (err) {
         console.error(err);
       }
+    },
+    async fetchMessages(){
+
     },
     async flagMessage({ roomId, message }) {
       try {
@@ -306,7 +310,7 @@ export default {
         this.offset += 50;
         params.offset = this.offset;
         try{
-          const data = await MessageService.getIndividualMessages(params);
+          const data = await MessageService.fetchMessages(params);
           if (data.data.is_success) {
             newMessages = data.data.messages;
           }
@@ -376,7 +380,7 @@ export default {
           offset,
         };
         this.resetChatWidget();
-        const data = await MessageService.getIndividualMessages(params);
+        const data = await MessageService.fetchMessages(params);
         if (data.data.is_success) {
           this.groupView = false;
           const formattedMessages = [];
@@ -444,7 +448,7 @@ export default {
         this.offset = 0;
         params.offset = this.offset;
         this.resetChatWidget();
-        const data = await MessageService.fetchGroupMessages(params);
+        const data = await MessageService.fetchMessages(params);
         if (data && data.data.is_success) {
           this.currentUserId = '';
           const formattedMessages = [];
