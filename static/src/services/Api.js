@@ -59,7 +59,7 @@ axios.interceptors.response.use(
   },
 );
 
-// allow blog requests to return JSON when they fail
+// allow blob requests to return JSON when they fail
 // https://github.com/axios/axios/issues/815#issuecomment-453963910
 axios.interceptors.response.use(
   response => {
