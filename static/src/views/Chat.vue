@@ -11,6 +11,7 @@
           height='100vh' 
           :currentUserId='currentUserId' 
           :rooms='rooms'
+          :room-id='roomId'
           :messages='messages' 
           :messages-loaded='messagesLoaded' 
           :rooms-loaded='roomsLoaded'
@@ -63,6 +64,7 @@ export default {
       toastMessage: '',
       showToastError: false,
       rooms: [],
+      roomId: '',
       currentUserId: 1,
       groupAndIndividualChats: [],
       messagesLoaded: false,
@@ -105,32 +107,23 @@ export default {
         this.$store.dispatch('update_messages', {roomId: this.selectedRoom, msgs: payload});
       }
     },
-    groupId() {
-      return this.$route.query.groupId || null;
+    chatId() {
+      return this.$route.query.chatId || null;
     }
   },
   watch:{
-    groupId(to, from) {
-      // TODO: Handle changes in the query
-      console.log("Need to load",to);
+    chatId(to, from) {
+      if(this.roomId !== this.chatId){
+        // Updating the roomId will cause changeChat to be called
+        this.roomId = this.chatId;
+      }
     }
   },
   async mounted() {
     this.resetChatWidget();
     await this.getGroupAndIndividualChats();
-    this.username = localStorage.getItem('username') || '';
-    this.selectedRoom = this.$route.query.roomId || '';
-    this.groupBookmark = this.$route.query.isGroup === 'true' || false;
-    const selectedDiv = document.querySelector(`div[data-id='${this.selectedRoom}']`);
-    const groupButton = document.querySelector(`button[data-id='${this.groupId}']`);
-    if (this.groupBookmark && (this.groupId === this.selectedRoom)) {
-      if (selectedDiv) {
-        selectedDiv.click();
-      }
-    } else if (groupButton && selectedDiv) {
-      groupButton.click();
-      selectedDiv.click();
-    }
+    if(this.chatId)
+      this.roomId = this.chatId;
   },
   destroyed(){
     this.resetChatWidget();
@@ -180,13 +173,13 @@ export default {
         const userMap = {}
         this.groupAndIndividualChats.forEach((d) =>{
           formattedRoomStructure.push({
-            roomId: d.chat['id'],
+            roomId: d.chat['id'].toString(),
             roomName: d.chat['title'],
             type: 'group-chat',
             users: []});
           d.bot.bot_individuals.forEach((i) =>{
             userMap[i.individual.id] ={
-              roomId: i.individual.id,
+              roomId: i.individual.id.toString(),
               roomName: i.individual.first_name,
               type: 'individual-chat',
               users: []};
@@ -203,7 +196,8 @@ export default {
       }
     },
     async fetchMessages(){
-
+      // TODO: Fetch the messages for this.roomId with offset this.offset
+      // then update the offset
     },
     async flagMessage({ roomId, message }) {
       try {
@@ -267,14 +261,16 @@ export default {
       }
     },
     async changeChat({room}) {
-      const roomId = room.roomId;
+      const newChatId = room.roomId;
       const isGroup = (room.type === 'group-chat');
 
-      if(this.roomId === roomId) {
-        // TODO: 
-        console.log('load old messages!');
+      if(this.chatId === newChatId) {
+        // One could imagine caching messages in the future to speed things up.
+        this.fetchMessages();
       } else { 
-        this.$router.push({path:'/chat/', query: { roomId: roomId, isGroup:isGroup, groupId: roomId || null}});
+        // First time through we will update history. This will cause changeChat 
+        // to be called a second time where we'll actually fetch the msgs
+        this.$router.push({path:'/chat/', query: { chatId: newChatId, isGroup:isGroup || null}});
       }
     },
     async loadOldMessages({
