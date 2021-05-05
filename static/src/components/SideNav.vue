@@ -1,15 +1,20 @@
 <template>
   <div class='side-nav h-100'>
-    <div class='h3 title w-100 text-center bg-dark text-white px-3 m-0 d-flex align-items-center
-    d-flex justify-content-around'>
-      <div class='text-truncate username text-left capitalize'>{{ username }}</div>
-      <div class="cal_down h-100" @click="downloadSchedules()" title="Download schedules"></div>
-      <label class='cal_up h-100 file-upload-label' title='Upload schedules' for="schedule-file">
-        <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
-      </label>
-      <div class='download h-100' @click='exportMessages()' title='Export'></div>
-      <div class='flagged h-100' @click='navigateToFlagged()' title='Flagged messages'></div>
-      <div class='logout h-100' @click='logout()' title='Log out'></div>
+    <div class="container py-4 bg-dark text-white">
+      <div class="row">
+        <div class="col-md sidebar-nav-icon cal_down" @click="downloadSchedules()" title="Download schedules"></div>
+        <label class='col-md sidebar-nav-icon cal_up file-upload-label' title='Upload schedules' for="schedule-file">
+          <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
+        </label>
+        <div class='col-md sidebar-nav-icon download' @click='exportMessages()' title='Export'></div>
+        <div class='col-md sidebar-nav-icon flagged' @click='navigateToFlagged()' title='Flagged messages'></div>
+        <div class='col-md sidebar-nav-icon logout' @click='logout()' title='Log out'></div>
+      </div>
+      <div class="row mt-2">
+        <div class="col">
+          <div class='text-truncate username text-left'>{{ username }}</div>
+        </div>
+      </div>
     </div>
     <div class='chat-contacts'>
       <div class='side-nav-row mt-2' v-for='(mainObj, i) in contacts' :key='i'>
@@ -189,49 +194,34 @@ export default {
     width: 85%;
   }
 
-  .cal_down {
-    width: 15%;
-    background-size: 20px;
+  .sidebar-nav-icon {
+    width: 25px;
+    height: 25px;
+    margin: 2px;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    background-image: url('../assets/cal_down.svg');
     cursor: pointer;
+  }
+
+  .cal_down {
+    background-image: url('../assets/cal_down.svg');
   }
 
   .cal_up {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/cal_up.svg');
-    cursor: pointer;
   }
 
   .download {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/download.svg');
-    cursor: pointer;
   }
 
   .flagged {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/flag.svg');
-    cursor: pointer;
   }
 
   .logout {
-    width: 15%;
-    background-size: 20px;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url('../assets/logout.svg');
-    cursor: pointer;
   }
 
   .channel-name {
