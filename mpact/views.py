@@ -136,6 +136,11 @@ class ScheduleMessages(APIView):
         Returns the scheduled messages file with a sheet for each group chat
         and any messages that have been scheduled for that chat.
         """
+        if not GroupChat.objects.exists():
+            return Response({
+                'message': 'You must create a group chat before uploading a message schedule.',
+            }, status=400)
+
         headers = ["Days", "Message", "Comment"]
         databook = tablib.Databook()
         for group in GroupChat.objects.all():
