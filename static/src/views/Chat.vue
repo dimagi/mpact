@@ -16,7 +16,7 @@
           :messages-loaded='messagesLoaded' 
           :rooms-loaded='roomsLoaded'
           :styles='styles'
-          :message-actions='messageActions' 
+          :message-actions='messageActions'
           @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
           :showNewMessagesDivider='showNewMessagesDivider'
           @send-message='sendMessage($event)' 
@@ -31,7 +31,7 @@
           </template>
           <template v-slot:room-list-item="{room}">
             <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
-              {{room.roomName}}
+              {{room.roomName}} <span class="badge alert-warning unread-count" v-if="room.unreadCount">{{room.unreadCount}}</span>
             </div>
           </template>
         </chat-window>
@@ -116,6 +116,7 @@ export default {
       if(this.roomId !== this.chatId){
         // Updating the roomId will cause changeChat to be called
         this.roomId = this.chatId;
+        this.offset = 0;
       }
     }
   },
@@ -175,6 +176,7 @@ export default {
           formattedRoomStructure.push({
             roomId: d.chat['id'].toString(),
             roomName: d.chat['title'],
+            unreadCount: d.chat['unread_count'],
             type: 'group-chat',
             users: []});
           d.bot.bot_individuals.forEach((i) =>{
@@ -196,8 +198,45 @@ export default {
       }
     },
     async fetchMessages(){
-      // TODO: Fetch the messages for this.roomId with offset this.offset
-      // then update the offset
+      try {
+        this.messagesLoaded = false;
+
+        const batchSize = 50;
+        const response = await MessageService.fetchMessages(this.roomId, this.offset, batchSize);
+        if (!response || !response.data.is_success) {
+          this.toastMessage = 'There was an issue fetching new messages!';
+          this.showToastError = true;
+          this.showToast();
+          return;
+        }
+
+        this.currentUserId = '';
+        const formattedMessages = [];
+        const messages = response.data.messages;
+        if (messages.length < 50) {
+          this.messagesLoaded = true;
+        }
+        messages.forEach((m) => {
+          // TODO: the following doesn't work. Need to highlight messages from me
+          if (m.sender_id === this.botId) {
+            this.currentUserId = m.sender_id;
+          }
+          formattedMessages.push({
+            _id: m.id || '',
+            content: m.message || '',
+            sender_id: m.sender_id || '',
+            date: dateHelpers.convertDate(m.date),
+            timestamp: dateHelpers.convertTime(m.date),
+            username: this.roomName, 
+            isFlagged: m.is_flagged,
+            roomId: this.roomId,
+          });
+        });
+        this.messages = formattedMessages;
+        this.offset += messages.length;
+      } catch (err) {
+        console.error(err);
+      }
     },
     async flagMessage({ roomId, message }) {
       try {
@@ -572,5 +611,9 @@ export default {
 .vac-room-item > .individual-chat:hover,
 .vac-room-selected > .individual-chat {
   background-color: #CCDDF4;
+}
+
+.unread-count {
+  margin-left: auto;
 }
 </style>

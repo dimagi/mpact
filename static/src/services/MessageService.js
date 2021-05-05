@@ -18,11 +18,7 @@ export default {
       throw err;
     }
   },
-  async fetchMessages({
-    roomId,
-    offset,
-    limit = 50,
-  }) {
+  async fetchMessages( roomId, offset, limit = 50 ) {
     try {
       const response = await Api.get(`messages/${roomId}`, {
         params: {
