@@ -1,43 +1,39 @@
 <template>
   <div class='vw-100 vh-100'>
-    <div class='row m-0 p-0'>
-      <div class='col-2 p-0 z-index__25'>
-        <side-nav :username='username' :contacts='groupAndIndividualChats' @getIndividualMessages='fetchMessages($event)'
-          @getGroupMessages='fetchMessages($event)' />
-      </div>
-      <Toast :text='toastMessage' :hasError='showToastError' />
-      <div class='col-10 p-0'>
-        <chat-window 
-          height='100vh' 
-          :currentUserId='currentUserId' 
-          :rooms='rooms'
-          :room-id='roomId'
-          :messages='messages' 
-          :messages-loaded='messagesLoaded' 
-          :rooms-loaded='roomsLoaded'
-          :styles='styles'
-          :message-actions='messageActions'
-          @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
-          :showNewMessagesDivider='showNewMessagesDivider'
-          @send-message='sendMessage($event)' 
-          @message-action-handler='messageActionHandler($event)'
-          :text-messages='textMessages'
-          :load-first-room='false' :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
-          <template #dropdown-icon>
-            <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
-              <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
-              10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6
-                6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
-            </svg>
-          </template>
-          <template v-slot:room-list-item="{room}">
-            <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
-              {{room.roomName}} <span class="badge alert-warning unread-count" v-if="room.unreadCount">{{room.unreadCount}}</span>
-            </div>
-          </template>
-        </chat-window>
-      </div>
-    </div>
+    <Toast :text='toastMessage' :hasError='showToastError' />
+    <chat-window 
+      height='100vh' 
+      :currentUserId='currentUserId' 
+      :rooms='rooms'
+      :room-id='roomId'
+      :messages='messages' 
+      :messages-loaded='messagesLoaded' 
+      :rooms-loaded='roomsLoaded'
+      :styles='styles'
+      :message-actions='messageActions'
+      @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
+      :showNewMessagesDivider='showNewMessagesDivider'
+      @send-message='sendMessage($event)' 
+      @message-action-handler='messageActionHandler($event)'
+      :text-messages='textMessages'
+      :load-first-room='false' :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
+      <template #dropdown-icon>
+        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
+          <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
+          10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6
+            6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
+        </svg>
+      </template>
+      <template v-slot:rooms-header>
+        <!-- TODO: Add back the buttons from SideNav here -->
+        <!-- Probably best to make it a separate compontent -->
+      </template>
+      <template v-slot:room-list-item="{room}">
+        <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
+          {{room.roomName}} <span class="badge alert-warning unread-count" v-if="room.unreadCount">{{room.unreadCount}}</span>
+        </div>
+      </template>
+    </chat-window>
   </div>
 </template>
 
