@@ -97,7 +97,6 @@ export default {
     messages: {
       get() {
         return this.$store.state.messages
-
       },
       set(payload) {
         this.$store.dispatch('update_messages', {roomId: this.selectedRoom, msgs: payload});
@@ -114,6 +113,9 @@ export default {
         this.roomId = this.chatId;
         this.offset = 0;
       }
+    },
+    roomId(to,from) {
+      this.$store.dispatch('update_active_channel',{activeChannel: to});
     }
   },
   async mounted() {
@@ -541,23 +543,6 @@ export default {
           replyMessage,
           groupView,
         });
-        if (response && response.status === 200) {
-          this.messagesLoaded = false;
-          const { message } = response.data;
-          const { date } = message;
-          const newMessages = [...this.messages, {
-            _id: message.id,
-            roomId: roomId,
-            content,
-            sender_id: this.currentUserId,
-            date: dateHelpers.convertDate(date),
-            timestamp: dateHelpers.convertTime(date),
-            isFlagged: false,
-            username: message.sender,
-          }];
-          this.messages = newMessages;
-          this.messagesLoaded = true;
-        }
       } catch (err) {
         console.error(err);
       }

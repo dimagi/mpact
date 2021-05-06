@@ -28,10 +28,11 @@ export default new Vuex.Store({
         update_messages({commit}, payload) {
             let finalPayload = []
             const msgs = payload.msgs;
-            const roomId = payload.roomId;
             msgs.forEach(msg => {
-                console.log(msg.room_id,roomId,msg.room_id == roomId);
-                if (roomId === '' || msg.room_id === undefined || msg.room_id == roomId) {
+                // Only keep messages for the current room. As mentioned elsewhere, 
+                // we could imagine caching messags, but we refetch every time we 
+                // change a room at the moment.
+                if(msg.roomId == this.state.active_channel) { 
                     finalPayload.push(msg);
                 }
             });
@@ -41,7 +42,7 @@ export default new Vuex.Store({
             commit('SET_UNREAD_MESSAGE', payload)
         },
         update_active_channel({commit}, payload) {
-            commit('SET_ACTIVE_CHANNEL', payload)
+            commit('SET_ACTIVE_CHANNEL', payload.activeChannel)
         },
         update_websocket({commit}, payload) {
             commit('SET_WEBSOCKET', payload)
