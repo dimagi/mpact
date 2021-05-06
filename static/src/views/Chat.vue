@@ -157,9 +157,6 @@ export default {
       try {
         const response = await this.$http.get('/dialogs');
         this.groupAndIndividualChats = response.data.dialogs;
-        if(this.groupAndIndividualChats.length > 0) {
-          this.botId = this.groupAndIndividualChats[0].bot.id
-        }
         const unreadMessagesObj = {}
         this.groupAndIndividualChats.forEach((oneGroup) => {
           oneGroup.bot.bot_individuals.forEach((oneIndividual) => {
@@ -169,22 +166,32 @@ export default {
         })
         this.$store.dispatch('update_unread_messages', unreadMessagesObj)
 
-        // TODO: refactor this code?
+        // NOTE: We are abusing the user property for these rooms. By faking 
+        // three users, we are forcing the library to always show sender / usernames 
+        // with messages. We aren't passing a real list of users because we are
+        // not currently using any of the functionality.
         const formattedRoomStructure = [];
         const userMap = {}
+        const fakeUsers = [
+          {_id:1,username:"fake1"},
+          {_id:2,username:"fake2"},
+          {_id:3,username:"fake3"},
+        ]
         this.groupAndIndividualChats.forEach((d) =>{
           formattedRoomStructure.push({
             roomId: d.chat['id'].toString(),
             roomName: d.chat['title'],
             unreadCount: d.chat['unread_count'],
             type: 'group-chat',
-            users: []});
+            botId: d.bot['id'],
+            users: fakeUsers});
           d.bot.bot_individuals.forEach((i) =>{
             userMap[i.individual.id] ={
               roomId: i.individual.id.toString(),
               roomName: i.individual.first_name,
               type: 'individual-chat',
-              users: []};
+              botId: d.bot['id'],
+              users: fakeUsers};
           });
         });
         // Even if a user is in multiple group chats, put 'em in the room list once.
@@ -210,24 +217,23 @@ export default {
           return;
         }
 
-        this.currentUserId = '';
+        // Weak support for rooms with custom bots
+        const currentRoom = this.rooms.find((r) => r.roomId === this.roomId);
+        this.currentUserId = currentRoom.botId;
+
         const formattedMessages = [];
         const messages = response.data.messages;
         if (messages.length < 50) {
           this.messagesLoaded = true;
         }
         messages.forEach((m) => {
-          // TODO: the following doesn't work. Need to highlight messages from me
-          if (m.sender_id === this.botId) {
-            this.currentUserId = m.sender_id;
-          }
           formattedMessages.push({
             _id: m.id || '',
             content: m.message || '',
             sender_id: m.sender_id || '',
             date: dateHelpers.convertDate(m.date),
             timestamp: dateHelpers.convertTime(m.date),
-            username: this.roomName, 
+            username: m.sender_name, 
             isFlagged: m.is_flagged,
             roomId: this.roomId,
           });
