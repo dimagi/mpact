@@ -21,6 +21,7 @@
           :showNewMessagesDivider='showNewMessagesDivider'
           @send-message='sendMessage($event)' 
           @message-action-handler='messageActionHandler($event)'
+          :text-messages='textMessages'
           :load-first-room='false' :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
           <template #dropdown-icon>
             <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
@@ -94,7 +95,6 @@ export default {
           dropdownMessageBackground: 'transparent',
         },
       },
-      botId: '',
     };
   },
   computed: {
@@ -244,6 +244,8 @@ export default {
         console.error(err);
       }
     },
+
+    // TODO: Clean up beyond here.
     async flagMessage({ roomId, message }) {
       try {
         const params = {
