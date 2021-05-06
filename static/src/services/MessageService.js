@@ -13,6 +13,7 @@ export default {
         message: content,
         from_group: groupView,
       });
+      return response;
     } catch (err) {
       console.error(err);
       throw err;

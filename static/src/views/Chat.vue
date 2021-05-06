@@ -547,7 +547,7 @@ export default {
           const { date } = message;
           const newMessages = [...this.messages, {
             _id: message.id,
-            individual: roomId,
+            roomId: roomId,
             content,
             sender_id: this.currentUserId,
             date: dateHelpers.convertDate(date),
