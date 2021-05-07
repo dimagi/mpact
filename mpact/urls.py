@@ -10,6 +10,7 @@ from .views import (
     IndividualDetails,
     Logout,
     ScheduleMessages,
+    StudyParticipants,
     SendMessage,
     ExportMessages,
 )
@@ -22,6 +23,7 @@ urlpatterns = [
     path("flaggedmessages/<int:id>", FlagMessageDelete.as_view()),
     path("schedule_messages", ScheduleMessages.as_view()),
     path("schedules.xlsx", ScheduleMessages.as_view()),
+    path("study_participants.xlsx", StudyParticipants.as_view()),
     path("messages.csv", ExportMessages.as_view()),
     path("individuals/<int:individual_id>", IndividualDetails.as_view()),
 

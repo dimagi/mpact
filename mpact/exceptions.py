@@ -1,0 +1,4 @@
+
+
+class TelegramIdNotFound(Exception):
+    pass
