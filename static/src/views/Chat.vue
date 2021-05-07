@@ -439,13 +439,6 @@ export default {
 };
 </script>
 <style scoped>
-.bookmark {
-  position: absolute;
-  left: 22px;
-  width: 12px;
-  height: 12px;
-}
-
 /* A little CSS hack to add some custom styles */
 .vac-room-item > .mpact-custom-room-list-item {
   /* Repeat the parent CSS properties */
