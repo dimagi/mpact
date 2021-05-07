@@ -16,7 +16,7 @@ Vue.component('Toast', Toast);
 new Vue({
   el: '#app',
   data: {
-    connections: 0
+    connected: false
   },
   mounted() {
     const socket = new WebSocket(
