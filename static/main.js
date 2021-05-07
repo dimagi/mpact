@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import App from './App.vue';
-import Toast from './src/components/Toast.vue';
 import Api from './src/services/Api'
 import router from './src/router/index';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -8,9 +7,6 @@ import store from './store'
 import dateHelpers from './src/utils/helpers/dateHelpers';
 
 Vue.prototype.$http = Api;
-
-Vue.component('Toast', Toast);
-
 
 new Vue({
   el: '#app',
