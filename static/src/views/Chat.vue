@@ -131,7 +131,7 @@ export default {
           }
         }
       },
-      deep: true // required since we're wating an object
+      deep: true // required since we're watching an object
     }
   },
   async mounted() {
