@@ -71,6 +71,21 @@ class ChatBot(BaseModel):
         return f"chat_id: {self.chat.id} - bot_username: {self.bot.username}"
 
 
+class Individual(BaseModel):
+    """
+    An individual person on telegram / participant in the study
+    """
+    id = models.IntegerField(primary_key=True, help_text='The Telegram ID of the individual')
+    username = models.TextField(null=True)
+    first_name = models.TextField()
+    last_name = models.TextField(null=True)
+    study_id = models.TextField(null=True)
+    age = models.IntegerField(null=True)
+    gender = models.TextField(null=True)
+    address = models.TextField(null=True)
+    notes = models.TextField(null=True)
+
+
 class IndividualChat(ChatBase):
     """
     Represents a telegram 1:1 conversation.
@@ -91,6 +106,8 @@ class IndividualChat(ChatBase):
 
 
 class BotIndividual(BaseModel):
+    # note: cory thinks this model may not need to exist, since `IndividualChat`
+    # is already tied to the bot(?)
     bot = models.ForeignKey(
         Bot, related_name="bot_individuals", on_delete=models.CASCADE
     )
