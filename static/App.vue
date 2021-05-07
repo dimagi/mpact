@@ -8,6 +8,17 @@
 
 <script>
 import Vue from 'vue';
+import VueMyToasts from 'vue-my-toasts'
+import BootstrapComponent from 'vue-my-toasts/src/components/toasts/BootstrapComponent.vue'
+import 'vue-my-toasts/dist/vue-my-toasts.css'
+
+Vue.use(VueMyToasts, {
+  component: BootstrapComponent,
+  options: {
+    width: '400px',
+    position: 'top-middle',
+  }
+});
 
 Vue.component('error-boundary', {
   template: '<div><slot></slot></div>',

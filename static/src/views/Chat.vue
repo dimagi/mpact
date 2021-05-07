@@ -3,7 +3,6 @@
     <div class="alert alert-danger" role="alert" v-show="!connected">
       Not connected to server! If it does not resolve shortly, please <a href="javascript:window.location.reload()">refresh</a> the page.
     </div>
-    <Toast :text='toastMessage' :hasError='showToastError' />
     <chat-window 
       height='100vh' 
       :currentUserId='currentUserId' 
@@ -44,7 +43,6 @@
 /* eslint-disable import/no-named-as-default-member */
 import Vue from 'vue';
 import MessageService from '../services/MessageService';
-import ToastMixin from '../mixins/ToastMixin';
 import dateHelpers from '../utils/helpers/dateHelpers';
 import 'vue-advanced-chat/dist/vue-advanced-chat.css';
 
@@ -57,12 +55,9 @@ export default {
     ChatWindow,
     SideNav,
   },
-  mixins: [ToastMixin],
   data() {
     return {
       username: '',
-      toastMessage: '',
-      showToastError: false,
       rooms: [],
       roomId: '',
       currentUserId: 1,
@@ -231,9 +226,7 @@ export default {
         const batchSize = 50;
         const response = await MessageService.fetchMessages(this.roomId, this.offset, batchSize);
         if (!response || !response.data.is_success) {
-          this.toastMessage = 'There was an issue fetching new messages!';
-          this.showToastError = true;
-          this.showToast();
+          this.$toasts.error('There was an issue fetching new messages!');
           return;
         }
 
@@ -284,14 +277,10 @@ export default {
               isFlagged: true,
               saved: false,
             });
-            this.showToastError = false;
-            this.toastMessage = `${trimmedMessage} is successfully flagged!`;
-            this.showToast();
+            this.$toasts.success(`${trimmedMessage} successfully flagged!`);
           }
         } else {
-          this.showToastError = true;
-          this.toastMessage = `${trimmedMessage} is already flagged!`;
-          this.showToast();
+          this.$toasts.base(`${trimmedMessage} is already flagged!`);
         }
       } catch (err) {
         console.error(err);
