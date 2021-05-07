@@ -48,7 +48,7 @@ new Vue({
       newMessage.roomId = newMessage.room_id
       currentMessages.push(newMessage)
       const activeChannel = this.$store.state.active_channel
-      if (activeChannel !== newMessage.room_id) {
+      if (activeChannel.toString() !== newMessage.room_id.toString()) {
         const currentUnreadMessages = this.$store.state.unread_messages
         currentUnreadMessages[newMessage.room_id] = currentUnreadMessages[newMessage.room_id] + 1
         this.$store.dispatch('update_unread_messages', currentUnreadMessages)

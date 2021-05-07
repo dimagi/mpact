@@ -96,7 +96,7 @@ export default {
   computed: {
     messages: {
       get() {
-        return this.$store.state.messages
+        return this.$store.state.messages;
       },
       set(payload) {
         this.$store.dispatch('update_messages', {roomId: this.selectedRoom, msgs: payload});
@@ -104,6 +104,9 @@ export default {
     },
     chatId() {
       return this.$route.query.chatId || null;
+    },
+    unreadMessagesMap() {
+      return this.$store.state.unread_messages;
     }
   },
   watch:{
@@ -116,6 +119,19 @@ export default {
     },
     roomId(to,from) {
       this.$store.dispatch('update_active_channel',{activeChannel: to});
+    },
+    unreadMessagesMap: {
+      handler(to,from) {
+        for(const [rId, unreadCount] of Object.entries(to)) {
+          try {
+            const updateRoom = this.rooms.find((r) => r.roomId === rId);
+            updateRoom.unreadCount = unreadCount;
+          } catch(err) {
+            console.error(err);
+          }
+        }
+      },
+      deep: true // required since we're wating an object
     }
   },
   async mounted() {
@@ -159,9 +175,9 @@ export default {
         this.groupAndIndividualChats.forEach((oneGroup) => {
           oneGroup.bot.bot_individuals.forEach((oneIndividual) => {
             unreadMessagesObj[oneIndividual.individual.id] = oneIndividual.individual.unread_count;
+          });
+          unreadMessagesObj[oneGroup.chat.id] = oneGroup.chat.unread_count;
         });
-        unreadMessagesObj[oneGroup.chat.id] = oneGroup.chat.unread_count;
-        })
         this.$store.dispatch('update_unread_messages', unreadMessagesObj)
 
         // NOTE: We are abusing the user property for these rooms. By faking 
