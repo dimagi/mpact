@@ -9,6 +9,7 @@ from .models import (
     GroupChat,
     ChatBot,
     FlaggedMessage,
+    Individual,
     IndividualChat,
     Message,
     UserChatUnread,
@@ -22,6 +23,11 @@ admin.site.register(ChatBot)
 admin.site.register(BotIndividual)
 admin.site.register(FlaggedMessage)
 admin.site.register(UserChatUnread)
+
+
+@admin.register(Individual)
+class ScheduledMessageAdmin(admin.ModelAdmin):
+    list_display = ['id', 'first_name', 'last_name', 'username', 'study_id', 'age', 'gender']
 
 
 @admin.register(ScheduledMessage)
