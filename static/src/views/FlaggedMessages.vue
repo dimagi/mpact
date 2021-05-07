@@ -2,7 +2,6 @@
   <div class='vw-100 vh-100'>
     <div class='row m-0 p-0'>
       <div class='col-10 p-0'>
-        <Toast :text='toastMessage' :hasError='showToastError' />
         <chat-window height='100vh' class='bookmarks-widget-1' v-bind='chatProps' :messages-loaded='chatProps.messagesLoaded'>
           <template #message='{message}'>
             <div :id='message._id' class='message-container'>
@@ -51,7 +50,6 @@
 import Vue from 'vue';
 import MessageService from '../services/MessageService';
 import { convertDate, convertTime } from '../utils/helpers';
-import ToastMixin from '../mixins/ToastMixin';
 import 'vue-advanced-chat/dist/vue-advanced-chat.css';
 import '../styles/message.css';
 
@@ -90,11 +88,8 @@ export default {
   components: {
     ChatWindow,
   },
-  mixins: [ToastMixin],
   data() {
     return {
-      toastMessage: '',
-      showToastError: false,
       lastMessage: null,
       currentMessage: null,
       chatProps: {
@@ -152,9 +147,9 @@ export default {
             roomName: 'Flagged Messages',
             users: [],
           }];
-          this.showToastError = false;
-          this.toastMessage = 'Fetched all flagged messages';
-          this.showToast();
+          // this.showToastError = false;
+          // this.toastMessage = 'Fetched all flagged messages';
+          // this.showToast();
         }
       } catch (err) {
         console.error(err);
@@ -170,8 +165,8 @@ export default {
         if (response && response.data.is_success) {
           const updatedMessages = this.chatProps.messages.filter((message) => message._id !== id);
           this.chatProps.messages = updatedMessages;
-          this.toastMessage = 'Message is unflagged';
-          this.showToast();
+          // this.toastMessage = 'Message is unflagged';
+          // this.showToast();
         }
       } catch (err) {
         console.error(err);
