@@ -161,6 +161,28 @@ class ScheduleMessages(APIView):
         return Response(result[DATA], status=result[STATUS])
 
 
+class StudyParticipants(APIView):
+    # permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        """
+        Returns an empty study participants file with a columns
+        for study id and phone number
+        """
+        headers = ["Study ID", "Phone Number"]
+        databook = tablib.Databook()
+        sheet = tablib.Dataset(headers=headers)
+        sheet.title = "Study Particpants"
+        databook.add_sheet(sheet)
+        xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        response = HttpResponse(databook.export("xlsx"), content_type=xlsx)
+        response['Content-Disposition'] = 'attachment; filename="study-participants.xlsx"'
+        return response
+
+    def post(self, request):
+        # todo
+        raise Exception('post not suppoted')
+
 class ExportMessages(APIView):
     permission_classes = (IsAuthenticated,)
 
