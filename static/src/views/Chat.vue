@@ -28,8 +28,7 @@
         </svg>
       </template>
       <template v-slot:rooms-header>
-        <!-- TODO: Add back the buttons from SideNav here -->
-        <!-- Probably best to make it a separate compontent -->
+        <rooms-list-header />
       </template>
       <template v-slot:room-list-item="{room}">
         <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
@@ -46,15 +45,15 @@ import Vue from 'vue';
 import MessageService from '../services/MessageService';
 import dateHelpers from '../utils/helpers/dateHelpers';
 import 'vue-advanced-chat/dist/vue-advanced-chat.css';
+import RoomsListHeader from '../components/RoomsListHeader.vue';
 
 const ChatWindow = () => import('vue-advanced-chat');
-const SideNav = () => import('../components/SideNav.vue');
 
 export default {
   name: 'chat',
   components: {
     ChatWindow,
-    SideNav,
+    RoomsListHeader,
   },
   data() {
     return {
