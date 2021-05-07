@@ -336,6 +336,16 @@ async def edit_message(room_id, data):
 
 
 @exception
+async def get_telegram_id(phone_number):
+    """
+    Returns the updated message
+    """
+    async with start_bot_client() as bot:
+        # todo: telegram code to get a user's ID from a phone number
+        raise NotImplementedError()
+
+
+@exception
 async def get_individual_details(individual_id):
     """
     Return the individual details
