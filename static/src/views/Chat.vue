@@ -1,5 +1,8 @@
 <template>
   <div class='vw-100 vh-100'>
+    <div class="alert alert-danger" role="alert" v-show="!connected">
+      Not connected to server! If it does not resolve shortly, please <a href="javascript:window.location.reload()">refresh</a> the page.
+    </div>
     <Toast :text='toastMessage' :hasError='showToastError' />
     <chat-window 
       height='100vh' 
@@ -94,6 +97,9 @@ export default {
     };
   },
   computed: {
+    connected() {
+      return this.$root.connected;
+    },
     messages: {
       get() {
         return this.$store.state.messages;

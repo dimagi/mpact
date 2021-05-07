@@ -51,8 +51,7 @@ new Vue({
     }
 
     socket.onclose = event => {
-      // TODO: Alert the user and tell them to refresh the page
-      console.log('websocket connection closed')
+      // We consume this in chat.vue to display an alert. It's not ideal but it works
       this.connected = false
     }
 
