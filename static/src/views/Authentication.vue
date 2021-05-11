@@ -33,26 +33,21 @@
           </div>
         </div>
       </section>
-      <Toast :text="toastInput" :hasError="toastError" />
     </div>
   </div>
 </template>
 <script>
-const Toast = () => import('../components/Toast.vue');
 import { clearStorage } from '../utils/helpers'
 import jwt from 'jwt-decode';
 
 export default {
   components: {
-    Toast,
   },
   mounted() {
     this.removeCookies();
   },
   data() {
     return {
-      toastInput: '',
-      toastError: false,
       userName: '',
       password: '',
     };
@@ -76,9 +71,7 @@ export default {
             })
             .catch((err) => {
               clearStorage();
-              this.toastError = true;
-              this.toastInput = 'Incorrect username or password';
-              this.showNotification();
+              this.$toasts.error('Incorrect username or password');
             });
         }
       } catch (err) {
@@ -93,9 +86,6 @@ export default {
         const key = multiple[i].split('=');
         document.cookie = `${key[0]} =; expires = Thu, 01 Jan 1970 00:00:00 UTC`;
       }
-    },
-    showNotification() {
-      this.$('.toast').toast('show');
     },
   },
 };

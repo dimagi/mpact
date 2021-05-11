@@ -1,27 +1,41 @@
 <template>
   <div class='vw-100 vh-100'>
-    <div class='row m-0 p-0'>
-      <div class='col-2 p-0 z-index__25'>
-        <side-nav :username='username' :contacts='contacts' @getIndividualMessages='getIndividualMessages($event)'
-          @getGroupMessages='getGroupMessages($event)' />
-      </div>
-      <Toast :text='toastMessage' :hasError='showToastError' />
-      <div class='col-10 p-0'>
-        <chat-window height='100vh' class='chat-widget-1' :currentUserId='currentUserId' :rooms='rooms'
-          :messages='messages' :single-room='hideSideNav' :messages-loaded='messagesLoaded' :styles='styles'
-          :message-actions='messageActions' @fetch-messages='messages.length>=50 ? loadOldMessages($event) : null' :showNewMessagesDivider='showNewMessagesDivider'
-          @send-message='sendMessage($event)' @message-action-handler='messageActionHandler($event)'
-          :show-files='false' :show-audio='false' :show-reaction-emojis='false'>
-          <template #dropdown-icon>
-            <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
-              <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
-              10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6
-                6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
-            </svg>
-          </template>
-        </chat-window>
-      </div>
+    <!-- The toasts library we use doesn't have the concept of permanent alerts. Not worth trying to do it there for something so simple -->
+    <div class="alert alert-danger pinned-alert position-absolute" role="alert" v-show="!connected">
+      Not connected to server! If it does not resolve shortly, please <a href="javascript:window.location.reload()">refresh</a> the page.
     </div>
+    <chat-window 
+      height='100vh' 
+      :currentUserId='currentUserId' 
+      :rooms='rooms'
+      :room-id='roomId'
+      :messages='messages' 
+      :messages-loaded='messagesLoaded' 
+      :rooms-loaded='roomsLoaded'
+      :styles='styles'
+      :message-actions='messageActions'
+      @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
+      :showNewMessagesDivider='showNewMessagesDivider'
+      @send-message='sendMessage($event)' 
+      @message-action-handler='messageActionHandler($event)'
+      :text-messages='textMessages'
+      :load-first-room='false' :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
+      <template #dropdown-icon>
+        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
+          <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
+          10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6
+            6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
+        </svg>
+      </template>
+      <template v-slot:rooms-header>
+        <rooms-list-header />
+      </template>
+      <template v-slot:room-list-item="{room}">
+        <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
+          {{room.roomName}} <span class="badge alert-warning unread-count" v-if="room.unreadCount">{{room.unreadCount}}</span>
+        </div>
+      </template>
+    </chat-window>
   </div>
 </template>
 
@@ -29,37 +43,37 @@
 /* eslint-disable import/no-named-as-default-member */
 import Vue from 'vue';
 import MessageService from '../services/MessageService';
-import ToastMixin from '../mixins/ToastMixin';
 import dateHelpers from '../utils/helpers/dateHelpers';
 import 'vue-advanced-chat/dist/vue-advanced-chat.css';
+import RoomsListHeader from '../components/RoomsListHeader.vue';
 
 const ChatWindow = () => import('vue-advanced-chat');
-const SideNav = () => import('../components/SideNav.vue');
 
 export default {
   name: 'chat',
   components: {
     ChatWindow,
-    SideNav,
+    RoomsListHeader,
   },
-  mixins: [ToastMixin],
   data() {
     return {
       username: '',
-      toastMessage: '',
-      showToastError: false,
       rooms: [],
+      roomId: '',
       currentUserId: 1,
-      contacts: [],
+      groupAndIndividualChats: [],
       messagesLoaded: false,
-      hideSideNav: true,
+      roomsLoaded: false,
       roomName: '',
       limit: 50,
       groupView: true,
-      groupId: null,
       offset: 0,
       lastMessage: null,
       showNewMessagesDivider: false,
+      textMessages: {
+        ROOMS_EMPTY: 'Add your configured bot to a Telegram group and refresh to get started',
+        ROOM_EMPTY: 'No group or individual chat selected',
+      },
       messageActions: [
         {
           name: 'flagMessage',
@@ -75,36 +89,57 @@ export default {
           dropdownMessageBackground: 'transparent',
         },
       },
-      botId: '',
     };
   },
   computed: {
+    connected() {
+      return this.$root.connected;
+    },
     messages: {
       get() {
-        return this.$store.state.messages
-
+        return this.$store.state.messages;
       },
       set(payload) {
         this.$store.dispatch('update_messages', {roomId: this.selectedRoom, msgs: payload});
       }
     },
+    chatId() {
+      return this.$route.query.chatId || null;
+    },
+    unreadMessagesMap() {
+      return this.$store.state.unread_messages;
+    }
+  },
+  watch:{
+    chatId(to, from) {
+      if(this.roomId !== this.chatId) {
+        // Updating the roomId will cause changeChat to be called
+        this.roomId = this.chatId;
+        this.offset = 0;
+      }
+    },
+    roomId(to,from) {
+      this.$store.dispatch('update_active_channel',{activeChannel: to});
+    },
+    unreadMessagesMap: {
+      handler(to,from) {
+        for(const [rId, unreadCount] of Object.entries(to)) {
+          try {
+            const updateRoom = this.rooms.find((r) => r.roomId === rId);
+            updateRoom.unreadCount = unreadCount;
+          } catch(err) {
+            console.error(err);
+          }
+        }
+      },
+      deep: true // required since we're watching an object
+    }
   },
   async mounted() {
     this.resetChatWidget();
-    await this.getContacts();
-    this.username = localStorage.getItem('username') || '';
-    this.selectedRoom = this.$route.query.roomId || '';
-    this.groupBookmark = this.$route.query.isGroup === 'true' || false;
-    this.groupId = this.$route.query.groupId || null;
-    const selectedDiv = document.querySelector(`div[data-id='${this.selectedRoom}']`);
-    const groupButton = document.querySelector(`button[data-id='${this.groupId}']`);
-    if (this.groupBookmark && (this.groupId === this.selectedRoom)) {
-      if (selectedDiv) {
-        selectedDiv.click();
-      }
-    } else if (groupButton && selectedDiv) {
-      groupButton.click();
-      selectedDiv.click();
+    await this.getGroupAndIndividualChats();
+    if(this.chatId) {
+      this.roomId = this.chatId;
     }
   },
   destroyed(){
@@ -134,23 +169,97 @@ export default {
         console.error(err);
       }
     },
-    async getContacts() {
+    async getGroupAndIndividualChats() {
       try {
-        const data = await this.$http.get('/dialogs');
-        this.contacts = data.data.dialogs;
-        this.botId = this.contacts[0].bot.id
+        const response = await this.$http.get('/dialogs');
+        this.groupAndIndividualChats = response.data.dialogs;
         const unreadMessagesObj = {}
-        this.contacts.forEach((oneGroup) => {
+        this.groupAndIndividualChats.forEach((oneGroup) => {
           oneGroup.bot.bot_individuals.forEach((oneIndividual) => {
             unreadMessagesObj[oneIndividual.individual.id] = oneIndividual.individual.unread_count;
+          });
+          unreadMessagesObj[oneGroup.chat.id] = oneGroup.chat.unread_count;
         });
-        unreadMessagesObj[oneGroup.chat.id] = oneGroup.chat.unread_count;
-        })
         this.$store.dispatch('update_unread_messages', unreadMessagesObj)
+
+        // NOTE: We are abusing the user property for these rooms. By faking 
+        // three users, we are forcing the library to always show sender / usernames 
+        // with messages. We aren't passing a real list of users because we are
+        // not currently using any of the functionality.
+        const formattedRoomStructure = [];
+        const userMap = {}
+        const fakeUsers = [
+          {_id:1,username:"fake1"},
+          {_id:2,username:"fake2"},
+          {_id:3,username:"fake3"},
+        ]
+        this.groupAndIndividualChats.forEach((d) =>{
+          formattedRoomStructure.push({
+            roomId: d.chat['id'].toString(),
+            roomName: d.chat['title'],
+            unreadCount: d.chat['unread_count'],
+            type: 'group-chat',
+            botId: d.bot['id'],
+            users: fakeUsers});
+          d.bot.bot_individuals.forEach((i) =>{
+            userMap[i.individual.id] ={
+              roomId: i.individual.id.toString(),
+              roomName: i.individual.first_name,
+              type: 'individual-chat',
+              botId: d.bot['id'],
+              users: fakeUsers};
+          });
+        });
+        // Even if a user is in multiple group chats, put 'em in the room list once.
+        for(let key in userMap) {
+          formattedRoomStructure.push(userMap[key]);
+        }
+        this.rooms = formattedRoomStructure;
+        this.roomsLoaded = true;
       } catch (err) {
         console.error(err);
       }
     },
+    async fetchMessages(){
+      try {
+        this.messagesLoaded = false;
+
+        const batchSize = 50;
+        const response = await MessageService.fetchMessages(this.roomId, this.offset, batchSize);
+        if (!response || !response.data.is_success) {
+          this.$toasts.error('There was an issue fetching new messages!');
+          return;
+        }
+
+        // Weak support for rooms with custom bots
+        const currentRoom = this.rooms.find((r) => r.roomId === this.roomId);
+        this.currentUserId = currentRoom.botId;
+
+        const formattedMessages = [];
+        const messages = response.data.messages;
+        if (messages.length < 50) {
+          this.messagesLoaded = true;
+        }
+        messages.forEach((m) => {
+          formattedMessages.push({
+            _id: m.id || '',
+            content: m.message || '',
+            sender_id: m.sender_id || '',
+            date: dateHelpers.convertDate(m.date),
+            timestamp: dateHelpers.convertTime(m.date),
+            username: m.sender_name, 
+            isFlagged: m.is_flagged,
+            roomId: this.roomId,
+          });
+        });
+        this.messages = formattedMessages;
+        this.offset += messages.length;
+      } catch (err) {
+        console.error(err);
+      }
+    },
+
+    // TODO: Clean up beyond here.
     async flagMessage({ roomId, message }) {
       try {
         const params = {
@@ -169,14 +278,10 @@ export default {
               isFlagged: true,
               saved: false,
             });
-            this.showToastError = false;
-            this.toastMessage = `${trimmedMessage} is successfully flagged!`;
-            this.showToast();
+            this.$toasts.success(`${trimmedMessage} successfully flagged!`);
           }
         } else {
-          this.showToastError = true;
-          this.toastMessage = `${trimmedMessage} is already flagged!`;
-          this.showToast();
+          this.$toasts.base(`${trimmedMessage} is already flagged!`);
         }
       } catch (err) {
         console.error(err);
@@ -212,6 +317,19 @@ export default {
         console.error(err);
       }
     },
+    async changeChat({room}) {
+      const newChatId = room.roomId;
+      const isGroup = (room.type === 'group-chat');
+
+      if(this.chatId === newChatId) {
+        // One could imagine caching messages in the future to speed things up.
+        this.fetchMessages();
+      } else { 
+        // First time through we will update history. This will cause changeChat 
+        // to be called a second time where we'll actually fetch the msgs
+        this.$router.push({path:'/chat/', query: { chatId: newChatId, isGroup:isGroup || null}});
+      }
+    },
     async loadOldMessages({
       room,
       options = {},
@@ -245,7 +363,7 @@ export default {
         this.offset += 50;
         params.offset = this.offset;
         try{
-          const data = await MessageService.getIndividualMessages(params);
+          const data = await MessageService.fetchMessages(params);
           if (data.data.is_success) {
             newMessages = data.data.messages;
           }
@@ -296,134 +414,6 @@ export default {
         console.error(err);
       }
     },
-    async getIndividualMessages({
-      roomName,
-      roomId,
-      groupId,
-    }) {
-      try {
-        this.groupId = groupId;
-        this.messagesLoaded = false;
-        this.offset = 0;
-        const {
-          limit,
-          offset,
-        } = this;
-        const params = {
-          roomId,
-          limit,
-          offset,
-        };
-        this.resetChatWidget();
-        const data = await MessageService.getIndividualMessages(params);
-        if (data.data.is_success) {
-          this.groupView = false;
-          const formattedMessages = [];
-          const formattedRoomStructure = [];
-          const users = [];
-          this.currentUserId = roomId;
-          const newMessages = data.data.messages;
-          if (newMessages.length < 50) {
-            this.messagesLoaded = true;
-          }
-          newMessages.forEach((d) => {
-            if (d.sender_id === this.botId) {
-              this.currentUserId = d.sender_id;
-            }
-            users.push({
-            _id: d.id,
-            username: d.sender_name,
-            });
-            formattedMessages.push({
-              _id: d.id,
-              content: d.message || '',
-              sender_id: d.sender_id,
-              date: dateHelpers.convertDate(d.date),
-              timestamp: dateHelpers.convertTime(d.date),
-              isFlagged: d.is_flagged,
-              username: d.sender_name,
-              saved: false,
-              groupId,
-            });
-          });
-          formattedRoomStructure.push({
-            roomId,
-            roomName,
-            users,
-          });
-          this.messages = formattedMessages;
-          this.rooms = formattedRoomStructure;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    async getGroupMessages({
-      roomName,
-      roomId,
-      lazy = false,
-    }) {
-      this.groupId = roomId;
-      try {
-        const {
-          limit,
-          lastMessage,
-        } = this;
-        if (!this.groupView) {
-          this.lastMessage = null;
-        }
-        this.groupView = true;
-        const params = {
-          roomId,
-          limit,
-        };
-        this.offset = 0;
-        params.offset = this.offset;
-        this.resetChatWidget();
-        const data = await MessageService.fetchGroupMessages(params);
-        if (data && data.data.is_success) {
-          this.currentUserId = '';
-          const formattedMessages = [];
-          const formattedRoomStructure = [];
-          const userList = [];
-          const newMessages = data.data.messages;
-          if (newMessages.length < 50) {
-            this.messagesLoaded = true;
-          }
-          newMessages.forEach((d) => {
-            if (d.sender_id === this.botId) {
-              this.currentUserId = d.sender_id;
-            }
-            this.roomName = d.sender_name;
-            userList.push({
-              _id: d.id,
-              username: d.sender_name,
-            });
-            formattedMessages.push({
-              _id: d.id || '',
-              content: d.message || '',
-              sender_id: d.sender_id || '',
-              date: dateHelpers.convertDate(d.date),
-              timestamp: dateHelpers.convertTime(d.date),
-              username: this.roomName,
-              isFlagged: d.is_flagged,
-              saved: false,
-              groupId: this.groupId,
-            });
-          });
-          formattedRoomStructure.push({
-            roomId,
-            roomName,
-            users: userList,
-          });
-          this.messages = formattedMessages;
-          this.rooms = formattedRoomStructure;
-          [this.lastMessage] = newMessages;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    },
     async sendMessage({ roomId, content, file, replyMessage }) {
       try {
         const { groupView } = this;
@@ -434,23 +424,6 @@ export default {
           replyMessage,
           groupView,
         });
-        if (response && response.status === 200) {
-          this.messagesLoaded = false;
-          const { message } = response.data;
-          const { date } = message;
-          const newMessages = [...this.messages, {
-            _id: message.id,
-            individual: roomId,
-            content,
-            sender_id: this.currentUserId,
-            date: dateHelpers.convertDate(date),
-            timestamp: dateHelpers.convertTime(date),
-            isFlagged: false,
-            username: message.sender,
-          }];
-          this.messages = newMessages;
-          this.messagesLoaded = true;
-        }
       } catch (err) {
         console.error(err);
       }
@@ -467,10 +440,49 @@ export default {
 };
 </script>
 <style scoped>
-.bookmark {
-  position: absolute;
-  left: 22px;
-  width: 12px;
-  height: 12px;
+/* A little CSS hack to add some custom styles */
+.vac-room-item > .mpact-custom-room-list-item {
+  /* Repeat the parent CSS properties */
+  position: relative;
+  min-height: 71px;
+  border-radius: 8px;
+  padding: 0 16px;
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+
+  color: black;
+
+  /* A little CSS hack to cover the list item */
+  left: -16px;
+  margin-right: -32px;
+}
+
+.vac-room-item > .group-chat {
+  background-color: #F6FDF7;
+}
+
+.vac-room-item > .individual-chat {
+  background-color: #F6F9FD;
+}
+
+/* Tetradic https://www.canva.com/colors/color-wheel/  */
+.vac-room-item > .group-chat:hover,
+.vac-room-selected > .group-chat {
+  background-color: #E5FAE6;
+}
+.vac-room-item > .individual-chat:hover,
+.vac-room-selected > .individual-chat {
+  background-color: #CCDDF4;
+}
+
+.unread-count {
+  margin-left: auto;
+}
+
+.pinned-alert {
+  left: 0;
+  right: 0;
+  z-index: 99999;
 }
 </style>
