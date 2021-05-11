@@ -112,7 +112,7 @@ export default {
   },
   watch:{
     chatId(to, from) {
-      if(this.roomId !== this.chatId){
+      if(this.roomId !== this.chatId) {
         // Updating the roomId will cause changeChat to be called
         this.roomId = this.chatId;
         this.offset = 0;
@@ -138,8 +138,9 @@ export default {
   async mounted() {
     this.resetChatWidget();
     await this.getGroupAndIndividualChats();
-    if(this.chatId)
+    if(this.chatId) {
       this.roomId = this.chatId;
+    }
   },
   destroyed(){
     this.resetChatWidget();
