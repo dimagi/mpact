@@ -73,7 +73,7 @@ class ChatBot(BaseModel):
 
 class IndividualChat(ChatBase):
     """
-    Represents a telegram 1:1 conversation.
+    Represents a telegram user (and their 1:1 conversations with bots).
     """
     username = models.TextField(null=True)
     first_name = models.TextField()

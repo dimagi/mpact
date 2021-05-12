@@ -20,7 +20,6 @@ admin.site.register(Bot)
 admin.site.register(IndividualChat)
 admin.site.register(ChatBot)
 admin.site.register(BotIndividual)
-admin.site.register(Message)
 admin.site.register(FlaggedMessage)
 admin.site.register(UserChatUnread)
 
@@ -29,6 +28,12 @@ admin.site.register(UserChatUnread)
 class ScheduledMessageAdmin(admin.ModelAdmin):
     list_display = ['message', 'day', 'group', 'comment', 'enabled']
     list_filter = ['group', 'enabled']
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['message', 'date', 'telegram_msg_id', 'sender_id', 'sender_name', 'room_id']
+    list_filter = ['date', 'sender_id', 'room_id']
 
 
 class CustomPeriodicTask(PeriodicTask):
