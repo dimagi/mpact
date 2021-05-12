@@ -8,7 +8,8 @@ from django.db.models import F
 from rest_framework import status
 from telethon import TelegramClient
 from telethon.errors import MessageIdInvalidError
-from telethon.tl.types import InputPeerUser, PeerChat, PeerUser
+from telethon.tl.functions.contacts import ImportContactsRequest
+from telethon.tl.types import InputPeerUser, PeerChat, PeerUser, InputMediaContact, InputPhoneContact
 
 from mpact.helpers import get_chat_by_telegram_id
 from telegram_bot.constants import (
@@ -341,8 +342,30 @@ async def get_telegram_id(phone_number):
     Returns the updated message
     """
     async with start_bot_client() as bot:
-        # todo: telegram code to get a user's ID from a phone number
-        raise NotImplementedError()
+        if False:
+            # just leaving this code here in case it proves useful.
+            # It only works if you use a user, not a bot.
+            # more details: https://stackoverflow.com/a/51196276/8207
+            # https://tl.telethon.dev/methods/contacts/import_contacts.html#examples
+            contact = InputPhoneContact(client_id=0, phone=phone_number, first_name="a", last_name="")
+            result = await bot(ImportContactsRequest([contact]))
+            print(result)
+        else:
+            # this only works if you have already messaged the contact, so only will allow looking
+            # up "known" users.
+            # more details: https://stackoverflow.com/a/41696457/8207
+            room_id = GroupChat.objects.all()[0].id  # todo: if we use this find a way to parameterize it better
+            receiver = await bot.get_entity(PeerChat(room_id))
+            msg_inst = await bot.send_file(
+                receiver,
+                InputMediaContact(
+                    phone_number=phone_number,
+                    first_name='Jane',
+                    last_name='Doe',
+                    vcard='',
+                ))
+            # "unknown" users return "0" instead of the actual ID
+            return msg_inst.media.user_id if msg_inst.media.user_id != 0 else None
 
 
 @exception
