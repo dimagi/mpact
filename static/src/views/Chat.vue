@@ -15,7 +15,6 @@
       :styles='styles'
       :message-actions='messageActions'
       @fetch-messages='changeChat($event)' 
-      :showNewMessagesDivider='showNewMessagesDivider'
       @send-message='sendMessage($event)' 
       @message-action-handler='messageActionHandler($event)'
       :text-messages='textMessages'
@@ -50,7 +49,6 @@ export default {
   },
   data() {
     return {
-      username: '',
       rooms: [],
       roomId: '',
       currentUserId: 1,
@@ -59,10 +57,7 @@ export default {
       roomsLoaded: false,
       roomName: '',
       batchSize: 50,
-      groupView: true,
       offset: 0,
-      lastMessage: null,
-      showNewMessagesDivider: false,
       textMessages: {
         ROOMS_EMPTY: 'Add your configured bot to a Telegram group and refresh to get started',
         ROOM_EMPTY: 'No group or individual chat selected',
@@ -339,11 +334,9 @@ export default {
       }
     },
     resetChatWidget() {
-      this.messages = []
       this.rooms.length = 0;
       this.messages.length = 0;
       this.messagesLoaded = false;
-      this.lastMessage = null;
       this.offset = 0;
     },
   },
