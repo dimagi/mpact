@@ -6,7 +6,6 @@
       <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
     </label>
     <div class='col rooms-list-header-icon download' @click='exportMessages()' title='Export'></div>
-    <div class='col rooms-list-header-icon flagged' @click='navigateToFlagged()' title='Flagged messages'></div>
     <div class='col rooms-list-header-icon logout' @click='logout()' title='Log out'></div>
   </div>
 </template>
@@ -17,10 +16,6 @@ import { clearStorage } from '../utils/helpers';
 export default {
   name: 'rooms-list-header',
   methods: {
-    async navigateToFlagged() {
-      const route = this.$router.resolve({ path: '/flagged-messages' });
-      window.open(route.href, '_self');
-    },
     async downloadSchedules() {
       try {
         const response = await Api({
@@ -107,10 +102,6 @@ export default {
 
   .download {
     background-image: url('../assets/download.svg');
-  }
-
-  .flagged {
-    background-image: url('../assets/flag.svg');
   }
 
   .logout {
