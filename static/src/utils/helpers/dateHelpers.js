@@ -5,7 +5,7 @@ const convertDate = (date) => {
   const year = dateString.getFullYear();
   if (month.length < 2) month = `0${month}`;
   if (day.length < 2) day = `0${day}`;
-  return [day, month, year].join('-');
+  return [ year, month, day].join('-');
 }
 
 const convertTime = (time) => {
@@ -13,12 +13,12 @@ const convertTime = (time) => {
   return `${timeString.getHours().toString().padStart(2,'0')}:${timeString.getMinutes().toString().padStart(2,'0')}`;
 }
 
-export {
-  convertDate,
-  convertTime,
+const convertDateTime = (inputDate) => {
+  return convertDate(inputDate) + ' ' + convertTime(inputDate)
 }
 
 export default {
   convertDate,
   convertTime,
+  convertDateTime,
 }
