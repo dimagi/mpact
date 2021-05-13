@@ -151,8 +151,6 @@ export default {
         case 'replyMessage':
           this.replyMessage(options);
           break;
-        default:
-          break;
         }
       } catch (err) {
         console.error(err);
@@ -251,9 +249,8 @@ export default {
         console.error(err);
       }
     },
-
-    // TODO: Clean up beyond here.
     async flagMessage({ roomId, message }) {
+      // TODO: clean up flag messages code
       try {
         const params = {
           message: message._id,
