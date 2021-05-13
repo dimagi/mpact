@@ -316,7 +316,6 @@ export default {
     },
     async changeChat({room}) {
       const newChatId = room.roomId;
-      const isGroup = (room.type === 'group-chat');
 
       if(this.chatId === newChatId) {
         // One could imagine caching messages in the future to speed things up.
@@ -324,18 +323,16 @@ export default {
       } else { 
         // First time through we will update history. This will cause changeChat 
         // to be called a second time where we'll actually fetch the msgs
-        this.$router.push({path:'/chat/', query: { chatId: newChatId, isGroup:isGroup || null}});
+        this.$router.push({path:'/chat/', query: { chatId: newChatId }});
       }
     },
     async sendMessage({ roomId, content, file, replyMessage }) {
       try {
-        const { groupView } = this;
         const response = await MessageService.addNewMessage({
           roomId,
           content,
           file,
           replyMessage,
-          groupView,
         });
       } catch (err) {
         console.error(err);
