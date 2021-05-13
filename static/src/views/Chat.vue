@@ -1,7 +1,7 @@
 <template>
   <div class='vw-100 vh-100'>
     <!-- The toasts library we use doesn't have the concept of permanent alerts. Not worth trying to do it there for something so simple -->
-    <div class="alert alert-danger pinned-alert position-absolute" role="alert" v-show="!connected">
+    <div class="alert alert-danger pinned-alert position-absolute" role="alert" v-show="!this.$root.connected">
       Not connected to server! If it does not resolve shortly, please <a href="javascript:window.location.reload()">refresh</a> the page.
     </div>
     <chat-window 
@@ -87,9 +87,6 @@ export default {
     };
   },
   computed: {
-    connected() {
-      return this.$root.connected;
-    },
     messages: {
       get() {
         return this.$store.state.messages;
