@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 
 from mpact import services
-from mpact.services import schedule_messages
 from mpact.views import new_or_current_event_loop
 
 
