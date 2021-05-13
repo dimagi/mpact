@@ -1,4 +1,7 @@
+import json
 from collections import namedtuple
+
+import tablib
 
 from mpact.exceptions import TelegramIdNotFound
 from mpact.models import IndividualChat
@@ -6,6 +9,18 @@ from mpact.services import get_telegram_id
 
 ParticipantInfo = namedtuple('ParticipantInfo', ['study_id', 'phone_number'])
 ParticipantImportResult = namedtuple('ParticipantImportResult', ['participant_info', 'successful', 'message'])
+
+
+def excel_to_participants(participant_excel):
+    book = tablib.Databook()
+    book.load(participant_excel, "xlsx")
+    sheets = json.loads(book.export("json"))
+    sheet = sheets[0]
+    participants = []
+    for n, row in enumerate(sheet["data"], start=1):
+        participants.append(ParticipantInfo(row['Study ID'], str(row['Phone Number'])))
+
+    return participants
 
 
 async def import_participants(participants):
