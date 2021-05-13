@@ -141,14 +141,8 @@ export default {
         case 'flagMessage':
           this.flagMessage(options);
           break;
-        case 'editMessage':
-          this.editMessage(options);
-          break;
         case 'replyMessage':
           this.replyMessage(options);
-          break;
-        case 'deleteMessage':
-          this.deleteMessage(options);
           break;
         default:
           break;
@@ -279,32 +273,10 @@ export default {
         console.error(err);
       }
     },
-    async editMessage({ roomId, message }) {
-      try {
-        const params = {
-          roomId,
-          id: message._id,
-          content: message.content,
-        };
-        await MessageService.editMessage(params);
-      } catch (err) {
-        console.error(err);
-      }
-    },
     async replyMessage({ roomId, message }) {
       try {
         const params = {};
         console.info('replyMessage', roomId, message);
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    async deleteMessage({ message }) {
-      try {
-        const params = {
-          id: message._id,
-        };
-        await MessageService.deleteMessage(params);
       } catch (err) {
         console.error(err);
       }
