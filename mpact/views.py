@@ -1,4 +1,5 @@
 import asyncio
+import csv
 
 from django.http import HttpResponse
 from rest_framework import status
@@ -19,8 +20,7 @@ from telegram_bot.constants import (
 )
 from telegram_bot.logger import logger
 
-from .csv_serializer import Serializer as CSVSerializer
-from .models import GroupChat, Message
+from .models import GroupChat, Message, IndividualChat
 from .serializers import CustomTokenObtainPairSerializer
 from .services import (
     create_flagged_message,
@@ -188,19 +188,30 @@ class ExportMessages(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        csv_serializer = CSVSerializer()
         response = HttpResponse(content_type="text/csv")
-
-        csv_serializer.serialize(Message.objects.all(), stream=response, fields=(
+        field_names = [
             'telegram_msg_id',
             'sender_id',
             'sender_name',
+            'study_participant_id',
             'room_id',
             'message',
             'date',
             'from_group',
             'is_flagged',
+        ]
+        telegram_ids_to_study_ids = dict(IndividualChat.objects.exclude(study_id__isnull=True).values_list(
+             'id', 'study_id'
         ))
+        writer = csv.DictWriter(response, fieldnames=field_names)
+        writer.writeheader()
+        for message in Message.objects.all():
+            row = {
+                field: getattr(message, field, None) for field in field_names
+            }
+            row['study_participant_id'] = telegram_ids_to_study_ids.get(row['sender_id'], '')
+            writer.writerow(row)
+
         response['Content-Disposition'] = 'attachment; filename="messages.csv"'
         return response
 
