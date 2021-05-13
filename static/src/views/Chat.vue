@@ -14,7 +14,7 @@
       :rooms-loaded='roomsLoaded'
       :styles='styles'
       :message-actions='messageActions'
-      @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
+      @fetch-messages='changeChat($event)' 
       :showNewMessagesDivider='showNewMessagesDivider'
       @send-message='sendMessage($event)' 
       @message-action-handler='messageActionHandler($event)'
@@ -65,7 +65,7 @@ export default {
       messagesLoaded: false,
       roomsLoaded: false,
       roomName: '',
-      limit: 50,
+      batchSize: 50,
       groupView: true,
       offset: 0,
       lastMessage: null,
@@ -224,8 +224,7 @@ export default {
       try {
         this.messagesLoaded = false;
 
-        const batchSize = 50;
-        const response = await MessageService.fetchMessages(this.roomId, this.offset, batchSize);
+        const response = await MessageService.fetchMessages(this.roomId, this.offset, this.batchSize);
         if (!response || !response.data.is_success) {
           this.$toasts.error('There was an issue fetching new messages!');
           return;
@@ -237,7 +236,7 @@ export default {
 
         const formattedMessages = [];
         const messages = response.data.messages;
-        if (messages.length < 50) {
+        if (messages.length < this.batchSize) {
           this.messagesLoaded = true;
         }
         messages.forEach((m) => {
@@ -252,7 +251,12 @@ export default {
             roomId: this.roomId,
           });
         });
-        this.messages = formattedMessages;
+        if (this.offset >= this.batchSize) {
+          // We are loading old messages
+          this.messages = [...formattedMessages, ...this.messages];
+        } else {
+          this.messages = formattedMessages;
+        }
         this.offset += messages.length;
       } catch (err) {
         console.error(err);
