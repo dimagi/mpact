@@ -13,6 +13,7 @@
       :messages-loaded='messagesLoaded' 
       :rooms-loaded='roomsLoaded'
       :styles='styles'
+      :show-footer='showFooter'
       :message-actions='messageActions'
       @fetch-messages='changeChat($event)' 
       @send-message='sendMessage($event)' 
@@ -32,6 +33,10 @@
           {{room.roomName}} <span class="badge alert-warning unread-count" v-if="room.unreadCount">{{room.unreadCount}}</span>
         </div>
       </template>
+      <template v-slot:messages-empty>
+        <template v-if="roomId===flaggedMsgsId"><flagged-messages-list :flaggedMessages="flaggedMessages"/></template>
+        <template v-else>{{ textMessages.MESSAGES_EMPTY }}</template>
+      </template>
     </chat-window>
   </div>
 </template>
@@ -43,6 +48,7 @@ import MessageService from '../services/MessageService';
 import dateHelpers from '../utils/helpers/dateHelpers';
 import 'vue-advanced-chat/dist/vue-advanced-chat.css';
 import RoomsListHeader from '../components/RoomsListHeader.vue';
+import FlaggedMessagesList from '../components/FlaggedMessagesList.vue';
 
 const ChatWindow = () => import('vue-advanced-chat');
 
@@ -51,6 +57,7 @@ export default {
   components: {
     ChatWindow,
     RoomsListHeader,
+    FlaggedMessagesList
   },
   data() {
     return {
@@ -61,11 +68,15 @@ export default {
       messagesLoaded: false,
       roomsLoaded: false,
       roomName: '',
+      showFooter: true, // This is the text entry box for messages
       batchSize: 50,
       offset: 0,
+      flaggedMsgsId: "flaggedMsgs",
+      flaggedMessages: [],
       textMessages: {
         ROOMS_EMPTY: 'Add your configured bot to a Telegram group and refresh to get started',
         ROOM_EMPTY: 'No group or individual chat selected',
+        MESSAGES_EMPTY: 'No messages',
       },
       messageActions: [{
           name: 'flagMessage',
@@ -166,13 +177,20 @@ export default {
         // three users, we are forcing the library to always show sender / usernames 
         // with messages. We aren't passing a real list of users because we are
         // not currently using any of the functionality.
-        const formattedRoomStructure = [];
         const userMap = {}
         const fakeUsers = [
           {_id:1,username:"fake1"},
           {_id:2,username:"fake2"},
           {_id:3,username:"fake3"},
-        ]
+        ];
+        // Fake first 'room' is the flagged messages list
+        const formattedRoomStructure = [{
+          roomId: this.flaggedMsgsId,
+          roomName: "🏳️ Flagged Messages",
+          unreadCount: 0,
+          type: 'flagged-msgs',
+          users: fakeUsers,
+        }];
         this.groupAndIndividualChats.forEach((d) =>{
           formattedRoomStructure.push({
             roomId: d.chat['id'].toString(),
@@ -203,8 +221,18 @@ export default {
     async fetchMessages(){
       try {
         this.messagesLoaded = false;
+        // Not ideal, but basically we're going to abuse the plugin again.
+        // When we enter the flagged messages room, we are going to tell the plugin
+        // that there are no messages so that it tries to display the "messages empty"
+        // text, but we hijack it in the template to display a custom component
+        // that uses the flaggedMessages list to create a table of flagged messages.
+        const isFlaggedMessages = (this.roomId === this.flaggedMsgsId);
+        this.showFooter = !isFlaggedMessages;
 
-        const response = await MessageService.fetchMessages(this.roomId, this.offset, this.batchSize);
+        const response = isFlaggedMessages ? 
+                await MessageService.fetchFlaggedMessages({}) : 
+                await MessageService.fetchMessages(this.roomId, this.offset, this.batchSize);
+        
         if (!response || !response.data.is_success) {
           this.$toasts.error('There was an issue fetching new messages!');
           return;
@@ -214,23 +242,12 @@ export default {
         const currentRoom = this.rooms.find((r) => r.roomId === this.roomId);
         this.currentUserId = currentRoom.botId;
 
-        const formattedMessages = [];
-        const messages = response.data.messages;
+        const messages = isFlaggedMessages ? response.data.flagged_messages : response.data.messages;
         if (messages.length < this.batchSize) {
           this.messagesLoaded = true;
         }
-        messages.forEach((m) => {
-          formattedMessages.push({
-            _id: m.id || '',
-            content: m.message || '',
-            sender_id: m.sender_id || '',
-            date: dateHelpers.convertDate(m.date),
-            timestamp: dateHelpers.convertTime(m.date),
-            username: m.sender_name, 
-            isFlagged: m.is_flagged,
-            roomId: this.roomId,
-          });
-        });
+        const formattedMessages = isFlaggedMessages ? [] : this._processMessages(messages);
+        this.flaggedMessages = isFlaggedMessages ? this._processFlaggedMessages(messages) : [];
         if (this.offset >= this.batchSize) {
           // We are loading old messages
           this.messages = [...formattedMessages, ...this.messages];
@@ -241,6 +258,40 @@ export default {
       } catch (err) {
         console.error(err);
       }
+    },
+    _processFlaggedMessages(messages) {
+      const formattedMessages = [];
+      messages.forEach((d) => {
+        const roomSource = this.rooms.find((r) => r.roomId === d.message.room_id.toString()) || {roomName:'<unknown chat>'};
+
+        formattedMessages.push({
+          _id: d.id,
+          messageId: d.message.id,
+          firstName: d.message.sender_name || '',
+          content: d.message.message || '',
+          date: dateHelpers.convertDateTime(d.date),
+          roomId: d.message.room_id,
+          roomName: roomSource.roomName,
+        });
+      });
+      return formattedMessages;
+    },
+    _processMessages(messages) {
+      const formattedMessages = [];
+      messages.forEach((m) => {
+        formattedMessages.push({
+          _id: m.id || '',
+          messageId: m.message.id || '',
+          content: m.message || '',
+          sender_id: m.sender_id || '',
+          date: dateHelpers.convertDate(m.date),
+          timestamp: dateHelpers.convertTime(m.date),
+          username: m.sender_name, 
+          isFlagged: m.is_flagged,
+          roomId: this.roomId,
+        });
+      });
+      return formattedMessages;
     },
     async flagMessage({ roomId, message }) {
       // TODO: clean up flag messages code
@@ -328,6 +379,15 @@ export default {
   /* A little CSS hack to cover the list item */
   left: -16px;
   margin-right: -32px;
+}
+
+.vac-room-item > .flagged-msgs {
+  background-color: #717579 ;
+  color: #fff;
+}
+.vac-room-item > .flagged-msgs:hover,
+.vac-room-selected > .flagged-msgs {
+  background-color: #343a40; /* bg-dark */
 }
 
 .vac-room-item > .group-chat {
