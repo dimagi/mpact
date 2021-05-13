@@ -10,7 +10,7 @@ const convertDate = (date) => {
 
 const convertTime = (time) => {
   const timeString = new Date(time);
-  return `${timeString.getHours()}:${timeString.getMinutes()}`;
+  return `${timeString.getHours().toString().padStart(2,'0')}:${timeString.getMinutes().toString().padStart(2,'0')}`;
 }
 
 export {
