@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 import tablib
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.db.models import F
 from rest_framework import status
 from telethon import TelegramClient
@@ -354,7 +355,8 @@ async def get_telegram_id(phone_number, user_mode=False):
             # this only works if you have already messaged the contact, so only will allow looking
             # up "known" users.
             # more details: https://stackoverflow.com/a/41696457/8207
-            room_id = GroupChat.objects.all()[0].id  # todo: if we use this find a way to parameterize it better
+            room_id = settings.MPACT_CONTACT_LOOKUP_ROOM_ID or GroupChat.objects.all()[0].id
+            print('room id', room_id)
             receiver = await bot.get_entity(PeerChat(room_id))
             msg_inst = await bot.send_file(
                 receiver,

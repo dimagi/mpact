@@ -152,3 +152,7 @@ from datetime import timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
 }
+
+# this is the chat room used to look up participants, which will have contact messages
+# sent to it. If not specified it will use hte first group chat in the system.
+MPACT_CONTACT_LOOKUP_ROOM_ID = os.environ.get("MPACT_CONTACT_LOOKUP_ROOM_ID", None)
