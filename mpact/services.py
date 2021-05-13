@@ -337,12 +337,12 @@ async def edit_message(room_id, data):
 
 
 @exception
-async def get_telegram_id(phone_number):
+async def get_telegram_id(phone_number, user_mode=False):
     """
-    Returns the updated message
+    Tries to get a telegram ID for the passed in phone number.
     """
     async with start_bot_client() as bot:
-        if False:
+        if user_mode:
             # just leaving this code here in case it proves useful.
             # It only works if you use a user, not a bot.
             # more details: https://stackoverflow.com/a/51196276/8207

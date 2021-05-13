@@ -23,11 +23,11 @@ def excel_to_participants(participant_excel):
     return participants
 
 
-async def import_participants(participants):
+async def import_participants(participants, user_mode=False):
     results = []
     for participant in participants:
         try:
-            telegram_id = await get_telegram_id(participant.phone_number)
+            telegram_id = await get_telegram_id(participant.phone_number, user_mode)
             try:
                 individual = IndividualChat.objects.get(id=telegram_id)
                 individual.study_id = participant.study_id
