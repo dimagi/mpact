@@ -5,13 +5,11 @@ export default {
   async addNewMessage({
     roomId,
     content,
-    groupView,
   }) {
     try {
       const response = await Api.post('/messages', {
         room_id: roomId,
         message: content,
-        from_group: groupView,
       });
       return response;
     } catch (err) {

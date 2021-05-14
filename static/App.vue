@@ -9,8 +9,11 @@
 <script>
 import Vue from 'vue';
 import VueMyToasts from 'vue-my-toasts'
+import { TableLitePlugin } from 'bootstrap-vue'
 import BootstrapComponent from 'vue-my-toasts/src/components/toasts/BootstrapComponent.vue'
 import 'vue-my-toasts/dist/vue-my-toasts.css'
+
+Vue.use(TableLitePlugin)
 
 Vue.use(VueMyToasts, {
   component: BootstrapComponent,

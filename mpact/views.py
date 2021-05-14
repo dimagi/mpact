@@ -57,8 +57,7 @@ class SendMessage(APIView):
         data = request.data
         room_id = int(data['room_id'])
         message = data['message']
-        from_group = data['from_group']
-        result = new_or_current_event_loop().run_until_complete(send_msg(room_id, message, from_group))
+        result = new_or_current_event_loop().run_until_complete(send_msg(room_id, message))
         return Response(result[DATA], status=result[STATUS])
 
 

@@ -1,7 +1,7 @@
 <template>
   <div class='vw-100 vh-100'>
     <!-- The toasts library we use doesn't have the concept of permanent alerts. Not worth trying to do it there for something so simple -->
-    <div class="alert alert-danger pinned-alert position-absolute" role="alert" v-show="!connected">
+    <div class="alert alert-danger pinned-alert position-absolute" role="alert" v-show="!this.$root.connected">
       Not connected to server! If it does not resolve shortly, please <a href="javascript:window.location.reload()">refresh</a> the page.
     </div>
     <chat-window 
@@ -13,18 +13,16 @@
       :messages-loaded='messagesLoaded' 
       :rooms-loaded='roomsLoaded'
       :styles='styles'
+      :show-footer='showFooter'
       :message-actions='messageActions'
-      @fetch-messages='messages.length>=50 ? loadOldMessages($event) : changeChat($event)' 
-      :showNewMessagesDivider='showNewMessagesDivider'
+      @fetch-messages='changeChat($event)' 
       @send-message='sendMessage($event)' 
       @message-action-handler='messageActionHandler($event)'
       :text-messages='textMessages'
       :load-first-room='false' :show-files='false' :show-audio='false' :show-reaction-emojis='false' :show-add-room='false'>
       <template #dropdown-icon>
         <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'>
-          <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8
-          10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6
-            6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
+          <path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z' />
         </svg>
       </template>
       <template v-slot:rooms-header>
@@ -34,6 +32,10 @@
         <div :class="['vac-title-container','mpact-custom-room-list-item', room.type]">
           {{room.roomName}} <span class="badge alert-warning unread-count" v-if="room.unreadCount">{{room.unreadCount}}</span>
         </div>
+      </template>
+      <template v-slot:messages-empty>
+        <template v-if="roomId===flaggedMsgsId"><flagged-messages-list :flaggedMessages="flaggedMessages"/></template>
+        <template v-else>{{ textMessages.MESSAGES_EMPTY }}</template>
       </template>
     </chat-window>
   </div>
@@ -46,6 +48,7 @@ import MessageService from '../services/MessageService';
 import dateHelpers from '../utils/helpers/dateHelpers';
 import 'vue-advanced-chat/dist/vue-advanced-chat.css';
 import RoomsListHeader from '../components/RoomsListHeader.vue';
+import FlaggedMessagesList from '../components/FlaggedMessagesList.vue';
 
 const ChatWindow = () => import('vue-advanced-chat');
 
@@ -54,10 +57,10 @@ export default {
   components: {
     ChatWindow,
     RoomsListHeader,
+    FlaggedMessagesList
   },
   data() {
     return {
-      username: '',
       rooms: [],
       roomId: '',
       currentUserId: 1,
@@ -65,24 +68,23 @@ export default {
       messagesLoaded: false,
       roomsLoaded: false,
       roomName: '',
-      limit: 50,
-      groupView: true,
+      showFooter: true, // This is the text entry box for messages
+      batchSize: 50,
       offset: 0,
-      lastMessage: null,
-      showNewMessagesDivider: false,
+      flaggedMsgsId: "flaggedMsgs",
+      flaggedMessages: [],
       textMessages: {
         ROOMS_EMPTY: 'Add your configured bot to a Telegram group and refresh to get started',
         ROOM_EMPTY: 'No group or individual chat selected',
+        MESSAGES_EMPTY: 'No messages',
       },
-      messageActions: [
-        {
+      messageActions: [{
           name: 'flagMessage',
           title: 'Flag Message',
-        },
-        {
+        }, {
           name: 'replyMessage',
           title: 'Reply',
-        },
+        }
       ],
       styles: {
         icons: {
@@ -92,9 +94,6 @@ export default {
     };
   },
   computed: {
-    connected() {
-      return this.$root.connected;
-    },
     messages: {
       get() {
         return this.$store.state.messages;
@@ -153,16 +152,8 @@ export default {
         case 'flagMessage':
           this.flagMessage(options);
           break;
-        case 'editMessage':
-          this.editMessage(options);
-          break;
         case 'replyMessage':
           this.replyMessage(options);
-          break;
-        case 'deleteMessage':
-          this.deleteMessage(options);
-          break;
-        default:
           break;
         }
       } catch (err) {
@@ -186,13 +177,20 @@ export default {
         // three users, we are forcing the library to always show sender / usernames 
         // with messages. We aren't passing a real list of users because we are
         // not currently using any of the functionality.
-        const formattedRoomStructure = [];
         const userMap = {}
         const fakeUsers = [
           {_id:1,username:"fake1"},
           {_id:2,username:"fake2"},
           {_id:3,username:"fake3"},
-        ]
+        ];
+        // Fake first 'room' is the flagged messages list
+        const formattedRoomStructure = [{
+          roomId: this.flaggedMsgsId,
+          roomName: "🏳️ Flagged Messages",
+          unreadCount: 0,
+          type: 'flagged-msgs',
+          users: fakeUsers,
+        }];
         this.groupAndIndividualChats.forEach((d) =>{
           formattedRoomStructure.push({
             roomId: d.chat['id'].toString(),
@@ -223,9 +221,18 @@ export default {
     async fetchMessages(){
       try {
         this.messagesLoaded = false;
+        // Not ideal, but basically we're going to abuse the plugin again.
+        // When we enter the flagged messages room, we are going to tell the plugin
+        // that there are no messages so that it tries to display the "messages empty"
+        // text, but we hijack it in the template to display a custom component
+        // that uses the flaggedMessages list to create a table of flagged messages.
+        const isFlaggedMessages = (this.roomId === this.flaggedMsgsId);
+        this.showFooter = !isFlaggedMessages;
 
-        const batchSize = 50;
-        const response = await MessageService.fetchMessages(this.roomId, this.offset, batchSize);
+        const response = isFlaggedMessages ? 
+                await MessageService.fetchFlaggedMessages({}) : 
+                await MessageService.fetchMessages(this.roomId, this.offset, this.batchSize);
+        
         if (!response || !response.data.is_success) {
           this.$toasts.error('There was an issue fetching new messages!');
           return;
@@ -235,32 +242,59 @@ export default {
         const currentRoom = this.rooms.find((r) => r.roomId === this.roomId);
         this.currentUserId = currentRoom.botId;
 
-        const formattedMessages = [];
-        const messages = response.data.messages;
-        if (messages.length < 50) {
+        const messages = isFlaggedMessages ? response.data.flagged_messages : response.data.messages;
+        if (messages.length < this.batchSize) {
           this.messagesLoaded = true;
         }
-        messages.forEach((m) => {
-          formattedMessages.push({
-            _id: m.id || '',
-            content: m.message || '',
-            sender_id: m.sender_id || '',
-            date: dateHelpers.convertDate(m.date),
-            timestamp: dateHelpers.convertTime(m.date),
-            username: m.sender_name, 
-            isFlagged: m.is_flagged,
-            roomId: this.roomId,
-          });
-        });
-        this.messages = formattedMessages;
+        const formattedMessages = isFlaggedMessages ? [] : this._processMessages(messages);
+        this.flaggedMessages = isFlaggedMessages ? this._processFlaggedMessages(messages) : [];
+        if (this.offset >= this.batchSize) {
+          // We are loading old messages
+          this.messages = [...formattedMessages, ...this.messages];
+        } else {
+          this.messages = formattedMessages;
+        }
         this.offset += messages.length;
       } catch (err) {
         console.error(err);
       }
     },
+    _processFlaggedMessages(messages) {
+      const formattedMessages = [];
+      messages.forEach((d) => {
+        const roomSource = this.rooms.find((r) => r.roomId === d.message.room_id.toString()) || {roomName:'<unknown chat>'};
 
-    // TODO: Clean up beyond here.
+        formattedMessages.push({
+          _id: d.id,
+          messageId: d.message.id,
+          firstName: d.message.sender_name || '',
+          content: d.message.message || '',
+          date: dateHelpers.convertDateTime(d.date),
+          roomId: d.message.room_id,
+          roomName: roomSource.roomName,
+        });
+      });
+      return formattedMessages;
+    },
+    _processMessages(messages) {
+      const formattedMessages = [];
+      messages.forEach((m) => {
+        formattedMessages.push({
+          _id: m.id || '',
+          messageId: m.message.id || '',
+          content: m.message || '',
+          sender_id: m.sender_id || '',
+          date: dateHelpers.convertDate(m.date),
+          timestamp: dateHelpers.convertTime(m.date),
+          username: m.sender_name, 
+          isFlagged: m.is_flagged,
+          roomId: this.roomId,
+        });
+      });
+      return formattedMessages;
+    },
     async flagMessage({ roomId, message }) {
+      // TODO: clean up flag messages code
       try {
         const params = {
           message: message._id,
@@ -287,18 +321,6 @@ export default {
         console.error(err);
       }
     },
-    async editMessage({ roomId, message }) {
-      try {
-        const params = {
-          roomId,
-          id: message._id,
-          content: message.content,
-        };
-        await MessageService.editMessage(params);
-      } catch (err) {
-        console.error(err);
-      }
-    },
     async replyMessage({ roomId, message }) {
       try {
         const params = {};
@@ -307,19 +329,8 @@ export default {
         console.error(err);
       }
     },
-    async deleteMessage({ message }) {
-      try {
-        const params = {
-          id: message._id,
-        };
-        await MessageService.deleteMessage(params);
-      } catch (err) {
-        console.error(err);
-      }
-    },
     async changeChat({room}) {
       const newChatId = room.roomId;
-      const isGroup = (room.type === 'group-chat');
 
       if(this.chatId === newChatId) {
         // One could imagine caching messages in the future to speed things up.
@@ -327,113 +338,25 @@ export default {
       } else { 
         // First time through we will update history. This will cause changeChat 
         // to be called a second time where we'll actually fetch the msgs
-        this.$router.push({path:'/chat/', query: { chatId: newChatId, isGroup:isGroup || null}});
-      }
-    },
-    async loadOldMessages({
-      room,
-      options = {},
-    }) {
-      try {
-        const {
-          roomId,
-        } = room;
-        const {
-          reset = false,
-        } = options;
-        this.messagesLoaded = false;
-        if (this.messages.length < 50) {
-          this.messagesLoaded = true;
-          return;
-        }
-        if (reset) {
-          return;
-        }
-        const {
-          limit,
-          lastMessage,
-          groupView,
-        } = this;
-        let newMessages = [];
-        const params = {
-          roomId,
-          limit,
-          lazy: true,
-        };
-        this.offset += 50;
-        params.offset = this.offset;
-        try{
-          const data = await MessageService.fetchMessages(params);
-          if (data.data.is_success) {
-            newMessages = data.data.messages;
-          }
-          }catch(err){
-          console.log(err.response);
-          }
-        if (!newMessages.length) {
-          this.messagesLoaded = true;
-          return;
-        }
-        const formattedMessages = [];
-        const formattedRoomStructure = [];
-        const users = [];
-        newMessages.forEach((d) => {
-        if (d.sender_id === this.botId) {
-            this.currentUserId = d.sender_id;
-          }
-          users.push({
-            _id: d.id,
-            username: d.sender_name,
-          });
-          formattedMessages.push({
-            _id: d.id,
-            content: d.message || '',
-            sender_id: d.sender_id,
-            date: dateHelpers.convertDate(d.date),
-            timestamp: dateHelpers.convertTime(d.date),
-            isFlagged: d.is_flagged,
-            username: d.sender_name,
-            saved: false,
-            groupId: this.groupId,
-          });
-        });
-        if (groupView) {
-          [this.lastMessage] = newMessages;
-        }
-        formattedRoomStructure.push({
-          roomId,
-          roomName: room.roomName,
-          users,
-        });
-        if (formattedMessages.length < 50) {
-          this.messagesLoaded = true;
-        }
-        this.messages = [...formattedMessages, ...this.messages];
-        this.rooms = formattedRoomStructure;
-      } catch (err) {
-        console.error(err);
+        this.$router.push({path:'/chat/', query: { chatId: newChatId }});
       }
     },
     async sendMessage({ roomId, content, file, replyMessage }) {
       try {
-        const { groupView } = this;
         const response = await MessageService.addNewMessage({
           roomId,
           content,
           file,
           replyMessage,
-          groupView,
         });
       } catch (err) {
         console.error(err);
       }
     },
     resetChatWidget() {
-      this.messages = []
       this.rooms.length = 0;
       this.messages.length = 0;
       this.messagesLoaded = false;
-      this.lastMessage = null;
       this.offset = 0;
     },
   },
@@ -456,6 +379,15 @@ export default {
   /* A little CSS hack to cover the list item */
   left: -16px;
   margin-right: -32px;
+}
+
+.vac-room-item > .flagged-msgs {
+  background-color: #717579 ;
+  color: #fff;
+}
+.vac-room-item > .flagged-msgs:hover,
+.vac-room-selected > .flagged-msgs {
+  background-color: #343a40; /* bg-dark */
 }
 
 .vac-room-item > .group-chat {
