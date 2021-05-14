@@ -5,6 +5,9 @@
     <label class='col rooms-list-header-icon cal_up file-upload-label' title='Upload schedules' for="schedule-file">
       <input type="file" id="schedule-file" ref="schedule-file" multiple v-on:change="uploadSchedules()"/>
     </label>
+    <label class='col rooms-list-header-icon participants file-upload-label' title='Upload Study Participants' for="participant-file">
+      <input type="file" id="participant-file" ref="participant-file" multiple v-on:change="uploadParticipants()"/>
+    </label>
     <div class='col rooms-list-header-icon download' @click='exportMessages()' title='Export'></div>
     <div class='col rooms-list-header-icon flagged' @click='navigateToFlagged()' title='Flagged messages'></div>
     <div class='col rooms-list-header-icon logout' @click='logout()' title='Log out'></div>
@@ -51,6 +54,17 @@ export default {
       const formData = new FormData();
       formData.append("file", scheduleFile);
       const response = await Api.post('/schedule_messages', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log(response);
+    },
+    async uploadParticipants() {
+      const participantFile = document.getElementById("participant-file").files[0];
+      const formData = new FormData();
+      formData.append("file", participantFile);
+      const response = await Api.post('/study_participants.xlsx', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -115,6 +129,10 @@ export default {
 
   .logout {
     background-image: url('../assets/logout.svg');
+  }
+
+  .participants {
+    background-image: url('../assets/user_add.svg');
   }
 
   .channel-name {

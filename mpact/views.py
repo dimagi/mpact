@@ -21,6 +21,7 @@ from telegram_bot.constants import (
 from telegram_bot.logger import logger
 
 from .models import GroupChat, Message, IndividualChat
+from .participants import excel_to_participants, import_participants
 from .serializers import CustomTokenObtainPairSerializer
 from .services import (
     create_flagged_message,
@@ -181,8 +182,13 @@ class StudyParticipants(APIView):
         return response
 
     def post(self, request):
-        # todo
-        raise Exception('post not suppoted')
+        file = request.data["file"]
+        participants = excel_to_participants(file)
+        results = new_or_current_event_loop().run_until_complete(
+            import_participants(participants)
+        )
+        return Response(results)
+
 
 class ExportMessages(APIView):
     permission_classes = (IsAuthenticated,)
