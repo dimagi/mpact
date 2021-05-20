@@ -5,11 +5,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apk update
 RUN apk add postgresql-dev gcc python3-dev musl-dev libffi-dev openssl-dev cargo
 RUN apk add jpeg-dev zlib-dev
-RUN \
-  echo "deb https://deb.nodesource.com/node_14.x buster main" > /etc/apt/sources.list.d/nodesource.list && \
-  wget -qO- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
-  apt-get update && \
-  apt-get install -yqq nodejs
+RUN apk add --update nodejs npm
 
 RUN mkdir /code
 WORKDIR /code
