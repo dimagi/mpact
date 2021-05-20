@@ -5,16 +5,16 @@ setup:
     - plan: heroku-redis
       as: REDIS
   config:
-    DJANGO_SETTINGS_MODULE: wedding_plan.settings_heroku
+    DJANGO_SETTINGS_MODULE: telegram_bot.settings_heroku
 build:
   docker:
     django: Dockerfile.heroku
 run:
   web:
     command:
-      - gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 telegram_bot.wsgi:application --settings=telegram_bot.settings_heroku
+      - gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 telegram_bot.wsgi:application
     image: django
   worker:
     command:
-      - celery -A telegram_bot worker -l info --settings=telegram_bot.settings_heroku
+      - celery -A telegram_bot worker -l info
     image: django
