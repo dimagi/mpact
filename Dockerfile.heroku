@@ -15,4 +15,4 @@ COPY . /code/
 
 # why this has to be here:
 # https://stackoverflow.com/questions/59719175/where-to-run-collectstatic-when-deploying-django-app-to-heroku-using-docker
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --settings=telegram_bot.settings_heroku
