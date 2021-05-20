@@ -8,7 +8,6 @@ export default new Vuex.Store({
         messages: [],
         unread_messages: {},
         active_channel: null,
-        websocket: null
     },
     mutations: {
         SET_MESSAGE(state, messages) {
@@ -20,9 +19,6 @@ export default new Vuex.Store({
         SET_ACTIVE_CHANNEL(state, active_channel) {
             this.state.active_channel = active_channel
         },
-        SET_WEBSOCKET(state, websocket) {
-            this.state.websocket = websocket
-        }
     },
     actions: {
         update_messages({commit}, payload) {
