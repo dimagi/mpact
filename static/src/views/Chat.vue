@@ -286,7 +286,7 @@ export default {
           messageId: d.message.id,
           firstName: d.message.sender_name || '',
           content: d.message.message || '',
-          date: dateHelpers.convertDateTime(d.date),
+          date: dateHelpers.convertDateTime(d.message.date),
           roomId: d.message.room_id,
           roomName: roomSource.roomName,
         });

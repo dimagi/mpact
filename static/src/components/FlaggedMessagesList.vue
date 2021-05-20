@@ -35,7 +35,7 @@ export default {
     return {
       columns: [
         { label: "", key:"delete"},
-        { label: "Date", key:"date"},
+        { label: "Message Date", key:"date"},
         { label: "Sender", key:"firstName"},
         { label: "Chat", key:"roomName"},
         { label: "Message", key:"content"},
