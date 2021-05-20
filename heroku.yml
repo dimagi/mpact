@@ -12,9 +12,9 @@ build:
 run:
   web:
     command:
-      - gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 telegram_bot.wsgi:application
+      - gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 telegram_bot.wsgi:application --settings=telegram_bot.settings_heroku
     image: django
   worker:
     command:
-      - celery -A telegram_bot worker -l info
+      - celery -A telegram_bot worker -l info --settings=telegram_bot.settings_heroku
     image: django
