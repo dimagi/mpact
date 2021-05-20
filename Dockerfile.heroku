@@ -1,9 +1,10 @@
 FROM python:3.8-alpine
 ENV PYTHONUNBUFFERED=1
 
-# install psycopg2 dependencies
+# install psycopg2/cryptography/pillow dependencies
 RUN apk update
 RUN apk add postgresql-dev gcc python3-dev musl-dev libffi-dev openssl-dev cargo
+RUN apk add jpeg-dev zlib-dev
 
 RUN mkdir /code
 WORKDIR /code
