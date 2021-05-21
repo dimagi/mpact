@@ -12,7 +12,7 @@ build:
 run:
   web:
     command:
-      - daphne telegram_bot.asgi:channel_layer --bind 0.0.0.0:$PORT -v2
+      - daphne telegram_bot.asgi:application --bind 0.0.0.0:$PORT -v2
     image: django
   wsworker:
     command:
