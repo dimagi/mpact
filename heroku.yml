@@ -14,7 +14,15 @@ run:
     command:
       - gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 telegram_bot.wsgi:application
     image: django
-  worker:
+  celery:
     command:
       - celery -A telegram_bot worker -l info
+    image: django
+  celerybeat:
+    command:
+      - celery -A telegram_bot beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    image: django
+  telegram_bot:
+    command:
+      - python mpact_bot.py
     image: django
