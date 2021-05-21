@@ -13,6 +13,7 @@ cryptography==3.4.4  # cryptograpgy compatible version for pyopenssl 20.0.1
 channels-redis==3.2.0
 tablib[xlsx]==3.0.0
 djangorestframework-simplejwt==4.6.0
+Twisted[tls,http2]
 
 # deployment libraries
 gunicorn==20.1.0
