@@ -16,7 +16,7 @@ run:
     image: django
   wsworker:
     command:
-      - python manage.py runworker --settings=telegram_bot.settings_heroku -v2
+      - python manage.py runworker chat --settings=telegram_bot.settings_heroku -v2
     image: django
   celery:
     command:
