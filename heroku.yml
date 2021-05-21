@@ -12,7 +12,11 @@ build:
 run:
   web:
     command:
-      - gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 telegram_bot.wsgi:application
+      - daphne telegram_bot.asgi:channel_layer --bind 0.0.0.0:$PORT -v2
+    image: django
+  wsworker:
+    command:
+      - python manage.py runworker --settings=telegram_bot.settings_heroku -v2
     image: django
   celery:
     command:
