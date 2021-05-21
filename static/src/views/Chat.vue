@@ -105,6 +105,9 @@ export default {
     chatId() {
       return this.$route.query.chatId || null;
     },
+    scrollToMsgId() {
+      return this.$route.query.messageId;
+    },
     unreadMessagesMap() {
       return this.$store.state.unread_messages;
     }
@@ -253,6 +256,26 @@ export default {
           this.messages = [...formattedMessages, ...this.messages];
         } else {
           this.messages = formattedMessages;
+          if(this.scrollToMsgId) {
+            // We are trying to jump to a specific message. We need to wait until
+            // nextTick so that the DOM is updated.
+            // Then there's a bit of a hack that we set a timer and w/ a 200ms delay
+            // to do the scrolling. This is because internally there is some scrolling
+            // that happens in the plugin. We need to wait for it to finish before we 
+            // jump to the particular message.
+            this.$nextTick(()=> {
+              const msgDiv = document.getElementById(this.scrollToMsgId);
+              if(msgDiv) {
+                setTimeout(
+                    () => msgDiv.scrollIntoView({behavior:'smooth'}), 
+                    200
+                  );
+              } else {
+                // Future work could handle this better, but we just alert the user for the moment.
+                this.$toasts.base('Unable to find message ID. It is likely older and has not yet been loaded');
+              }
+            });
+          }
         }
         this.offset += messages.length;
       } catch (err) {
@@ -269,7 +292,7 @@ export default {
           messageId: d.message.id,
           firstName: d.message.sender_name || '',
           content: d.message.message || '',
-          date: dateHelpers.convertDateTime(d.date),
+          date: dateHelpers.convertDateTime(d.message.date),
           roomId: d.message.room_id,
           roomName: roomSource.roomName,
         });
