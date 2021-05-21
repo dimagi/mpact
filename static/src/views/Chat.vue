@@ -264,11 +264,17 @@ export default {
             // that happens in the plugin. We need to wait for it to finish before we 
             // jump to the particular message.
             this.$nextTick(()=> {
+              const msgDiv = document.getElementById(this.scrollToMsgId);
+              if(msgDiv) {
                 setTimeout(
-                  () => document.getElementById(this.scrollToMsgId).scrollIntoView({behavior:'smooth'}), 
-                  200
-                );
-              });
+                    () => msgDiv.scrollIntoView({behavior:'smooth'}), 
+                    200
+                  );
+              } else {
+                // Future work could handle this better, but we just alert the user for the moment.
+                this.$toasts.base('Unable to find message ID. It is likely older and has not yet been loaded');
+              }
+            });
           }
         }
         this.offset += messages.length;
