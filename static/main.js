@@ -14,8 +14,9 @@ new Vue({
     connected: false
   },
   mounted() {
-    const socket = new WebSocket(
-      'ws://' + window.location.host +'/ws/connection', [], { "X-Auth-Token": {"Authorization": window.localStorage.Token}})
+    const wsPrefix = window.location.protocol !== 'https:' ? 'ws' : 'wss';
+    const wsUrl = wsPrefix + '://' + window.location.host +'/ws/connection';
+    const socket = new WebSocket(wsUrl, [], { "X-Auth-Token": {"Authorization": window.localStorage.Token}});
     socket.onopen = event => {
         this.connected = true
         socket.send({})

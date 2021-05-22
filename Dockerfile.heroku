@@ -1,0 +1,21 @@
+FROM python:3.8-alpine
+ENV PYTHONUNBUFFERED=1
+
+# install psycopg2/cryptography/pillow dependencies
+RUN apk update
+RUN apk add postgresql-dev gcc python3-dev musl-dev libffi-dev openssl-dev cargo
+RUN apk add jpeg-dev zlib-dev
+RUN apk add --update nodejs npm
+
+RUN mkdir /code
+WORKDIR /code
+
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+COPY . /code/
+
+RUN npm install
+RUN npm run start
+# why this has to be here:
+# https://stackoverflow.com/questions/59719175/where-to-run-collectstatic-when-deploying-django-app-to-heroku-using-docker
+RUN python manage.py collectstatic --noinput --settings=telegram_bot.settings_heroku

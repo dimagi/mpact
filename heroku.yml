@@ -1,0 +1,32 @@
+setup:
+  addons:
+    - plan: heroku-postgresql
+      as: DATABASE
+    - plan: heroku-redis
+      as: REDIS
+  config:
+    DJANGO_SETTINGS_MODULE: telegram_bot.settings_heroku
+build:
+  docker:
+    django: Dockerfile.heroku
+run:
+  web:
+    command:
+      - daphne telegram_bot.asgi:application --bind 0.0.0.0 --port $PORT -v2
+    image: django
+  wsworker:
+    command:
+      - python manage.py runworker chat --settings=telegram_bot.settings_heroku -v2
+    image: django
+  celery:
+    command:
+      - celery -A telegram_bot worker -l info
+    image: django
+  celerybeat:
+    command:
+      - celery -A telegram_bot beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    image: django
+  telegram_bot:
+    command:
+      - python mpact_bot.py
+    image: django
