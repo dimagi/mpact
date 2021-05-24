@@ -352,8 +352,9 @@ export default {
         console.error(err);
       }
     },
-    async changeChat({room, options}) {
-      const newChatId = room.roomId;
+    async changeChat(event) {
+      const newChatId = event.room.roomId;
+      const options = event.options || {reset:false};
 
       if(options.reset) {
         this.offset = 0;
