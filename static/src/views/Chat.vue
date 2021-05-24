@@ -352,8 +352,12 @@ export default {
         console.error(err);
       }
     },
-    async changeChat({room}) {
+    async changeChat({room, options}) {
       const newChatId = room.roomId;
+
+      if(options.reset) {
+        this.offset = 0;
+      }
 
       if(this.chatId === newChatId) {
         // One could imagine caching messages in the future to speed things up.
