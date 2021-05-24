@@ -2,7 +2,9 @@
 
 A Telegram-based expert support system
 
-## Telegram configuration
+# Telegram configuration
+
+The following steps are required to create a bot for use in any project:
 
 1. Download Telegram to your phone and set it up.
 
@@ -20,7 +22,7 @@ A Telegram-based expert support system
    that the bot is added as an admin to each group. If it was added as a non-admin, 
    you will need to re-add the bot.
 
-# Quickstart with Docker
+# Development Quickstart with Docker
 
 Install docker and docker-compose.
 
@@ -64,7 +66,7 @@ More details on available commands can be found by running:
 make
 ```
 
-# Legacy set up instructions
+# Legacy developer set up instructions
 
 1. Install prerequisite packages
 
@@ -150,7 +152,6 @@ The bot will be notified of its new group, and the group will be added
 to the database. The next time you log into mPACT, the group will appear
 in the left panel.
 
-
 # Technical Documentation
 
 *This section is a work in progress.*
@@ -171,6 +172,31 @@ The actual sending of messages is managed via [`django-celery-beat`](https://dja
 
 When schedules are uploaded, once-off `PeriodicTask` objects are created for each row in the schedule.
 These will call `tasks.send_msgs` with the appropriate arguments for the chat.
+
+# Deployment
+
+## Demo / Test environment
+
+A demo environment has been stood up on Heroku using [Heroku's container support](https://devcenter.heroku.com/categories/deploying-with-docker).
+The environment can be found at [http://mpact-demo.herokuapp.com/](http://mpact-demo.herokuapp.com/)
+
+Configuration for the environment can be found in the `heroku.yml` file in repository root.
+The application uses Docker containers built from the `Dockerfile.heroku` file in the repository root.
+
+The `heroku.yml` file can also be used to deploy new environments. The instructions are:
+
+1. Install the `heroku` command line tool and connect it to your account.
+2. Create a new heroku application.   
+3. Run `heroku stack:set container`
+4. Configure your project environment variables. This can be done in the "Settings" tab in the heroku dashboard,
+   or via the CLI by running `heroku config:set <var>=<value>`. Most of the variables used in development
+   are also required for production, including `BOT_TOKEN`, `BOT_USERNAME`, `TELEGRAM_API_HASH`, `TELEGRAM_API_ID`,
+   and `SECRET_KEY`. Additionally `DJANGO_SETTINGS_MODULE` should be set to `telegram_bot.settings_heroku`.
+5. Deploy - either by using heroku's git support or connecting it directly to the git repository.
+6. Create DB and superuser: `heroku run python manage.py migrate`, `heroku run python manage.py createsuperuser`
+
+The current demo site is configured to automatically update with every commit to the `main` branch on github.
+
 
 [direnv]: https://github.com/direnv/direnv/#direnv----unclutter-your-profile
 [tmux]: https://github.com/tmux/tmux#welcome-to-tmux
