@@ -193,6 +193,7 @@ The `heroku.yml` file can also be used to deploy new environments. The instructi
    are also required for production, including `BOT_TOKEN`, `BOT_USERNAME`, `TELEGRAM_API_HASH`, `TELEGRAM_API_ID`,
    and `SECRET_KEY`. Additionally `DJANGO_SETTINGS_MODULE` should be set to `telegram_bot.settings_heroku`.
 5. Deploy - either by using heroku's git support or connecting it directly to the git repository.
+6. Create DB and superuser: `heroku run python manage.py migrate`, `heroku run python manage.py createsuperuser`
 
 The current demo site is configured to automatically update with every commit to the `main` branch on github.
 
