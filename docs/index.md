@@ -1,6 +1,18 @@
 mPACT Administration
 ====================
 
+## The user interface
+
+The first time the superuser logs in, they will see an empty user
+interface:
+
+![Empty user interface](img/01_first_time_login.png "Empty user interface")
+
+You can mouse over the icons in the top left to see what each one does.
+
+A good place to start is to create a new chat group.
+
+
 ## Creating a new chat group
 
 1. In Telegram, open the menu and choose "New Group".
@@ -10,8 +22,10 @@ mPACT Administration
 1. Give your new group a name.
 
 The bot will be notified of its new group, and the group will be added
-to the database. The next time you log into mPACT, the group will appear
-in the left panel.
+to the database. The next time you refresh the page or log into mPACT,
+the group will appear in the left panel.
+
+![New group](img/02_new_group.png "New group")
 
 
 ## Scheduling
