@@ -28,6 +28,9 @@ export default new Vuex.Store({
                 // Only keep messages for the current room. As mentioned elsewhere, 
                 // we could imagine caching messags, but we refetch every time we 
                 // change a room at the moment.
+                if (!msg.senderId) {
+                    msg.senderId = msg.sender_id;
+                }
                 if(msg.roomId == this.state.active_channel) { 
                     finalPayload.push(msg);
                 }

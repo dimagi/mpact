@@ -50,7 +50,7 @@ import 'vue-advanced-chat/dist/vue-advanced-chat.css';
 import RoomsListHeader from '../components/RoomsListHeader.vue';
 import FlaggedMessagesList from '../components/FlaggedMessagesList.vue';
 
-const ChatWindow = () => import('vue-advanced-chat');
+import ChatWindow from 'vue-advanced-chat';
 
 export default {
   name: 'chat',
@@ -133,6 +133,12 @@ export default {
             console.error(err);
           }
         }
+        // For some reason, updates to unread count on individual chats are
+        // not triggering a re-render. According to
+        // https://michaelnthiessen.com/force-re-render/ the 'right' way would
+        // be to add a key to the loop that generates the room-list, but that
+        // happens inside the plugin.
+        this.$forceUpdate();
       },
       deep: true // required since we're watching an object
     }
@@ -232,6 +238,12 @@ export default {
         const isFlaggedMessages = (this.roomId === this.flaggedMsgsId);
         this.showFooter = !isFlaggedMessages;
 
+        // Get the number of unread messages in this room before we call fetchMessages,
+        // which will reset the count to zero. We use this to manually mark the last X
+        // messages as 'unseen' so that we get that nice blue bar separating the new 
+        // messages.
+        const currentUnreadMsgCount = this.$store.state.unread_messages[this.roomId];
+
         const response = isFlaggedMessages ? 
                 await MessageService.fetchFlaggedMessages({}) : 
                 await MessageService.fetchMessages(this.roomId, this.offset, this.batchSize);
@@ -278,6 +290,11 @@ export default {
           }
         }
         this.offset += messages.length;
+
+        // Finally, let's modify the last X messages to be unseen
+        for(let i=this.messages.length-1; i>=Math.max(this.messages.length-currentUnreadMsgCount,0); i--) {
+          this.messages[i].seen = false;
+        }
       } catch (err) {
         console.error(err);
       }
@@ -306,12 +323,13 @@ export default {
           _id: m.id || '',
           messageId: m.message.id || '',
           content: m.message || '',
-          sender_id: m.sender_id || '',
+          senderId: m.sender_id || '',
           date: dateHelpers.convertDate(m.date),
           timestamp: dateHelpers.convertTime(m.date),
           username: m.sender_name, 
           isFlagged: m.is_flagged,
           roomId: this.roomId,
+          seen: true
         });
       });
       return formattedMessages;
@@ -352,8 +370,22 @@ export default {
         console.error(err);
       }
     },
-    async changeChat({room}) {
+    async changeChat({room, options={}}) {
       const newChatId = room.roomId;
+
+      if(options.reset) {
+        // HACK: This is a proper hack. We should not be doing this, but we are.
+        // This reaches into the plugin [ChatWindow] -> [RoomsList, Room] to the 
+        // Room component and resets the newMessages array. Otherwise the array
+        // just continues to grow and the unread messages bar does not work correctly.
+        // There is no documentation about this and I couldn't figure out how it
+        // was intended to work, so we've hacked around it. Not ideal, but it's 
+        // a minor, nice-to-have feature, so if it breaks and must be removed
+        // it's not a trainsmash.
+        this.$children[0].$children[1].newMessages.length = 0;
+        this.offset = 0;
+        return this.changeChat({room:room});
+      }
 
       if(this.chatId === newChatId) {
         // One could imagine caching messages in the future to speed things up.
@@ -387,7 +419,7 @@ export default {
 </script>
 <style scoped>
 /* A little CSS hack to add some custom styles */
-.vac-room-item > .mpact-custom-room-list-item {
+.vac-room-item > .vac-room-container > .mpact-custom-room-list-item {
   /* Repeat the parent CSS properties */
   position: relative;
   min-height: 71px;
@@ -404,30 +436,30 @@ export default {
   margin-right: -32px;
 }
 
-.vac-room-item > .flagged-msgs {
+.vac-room-item > .vac-room-container > .flagged-msgs {
   background-color: #717579 ;
   color: #fff;
 }
-.vac-room-item > .flagged-msgs:hover,
-.vac-room-selected > .flagged-msgs {
+.vac-room-item > .vac-room-container > .flagged-msgs:hover,
+.vac-room-selected > .vac-room-container > .flagged-msgs {
   background-color: #343a40; /* bg-dark */
 }
 
-.vac-room-item > .group-chat {
+.vac-room-item > .vac-room-container > .group-chat {
   background-color: #F6FDF7;
 }
 
-.vac-room-item > .individual-chat {
+.vac-room-item > .vac-room-container > .individual-chat {
   background-color: #F6F9FD;
 }
 
 /* Tetradic https://www.canva.com/colors/color-wheel/  */
-.vac-room-item > .group-chat:hover,
-.vac-room-selected > .group-chat {
+.vac-room-item > .vac-room-container > .group-chat:hover,
+.vac-room-selected > .vac-room-container > .group-chat {
   background-color: #E5FAE6;
 }
-.vac-room-item > .individual-chat:hover,
-.vac-room-selected > .individual-chat {
+.vac-room-item > .vac-room-container > .individual-chat:hover,
+.vac-room-selected > .vac-room-container > .individual-chat {
   background-color: #CCDDF4;
 }
 
