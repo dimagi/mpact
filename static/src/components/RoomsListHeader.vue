@@ -53,7 +53,27 @@ export default {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log(response);
+      let error = false;
+      try {
+        if(Array.isArray(response.data["bad titles"])) {
+          response.data["bad titles"].forEach( (ws) => {
+            error=true;
+            this.$toasts.error("'" +ws+ "' is not a known group! Please download the schedule and fill it out.", {duration: 7500})
+          });
+        }
+        if(Array.isArray(response.data['bad rows'])) {
+          response.data["bad rows"]?.forEach( (r) => {
+            error=true;
+            this.$toasts.error("'" +r+ "' is a poorly formatted row.", {duration: 7500})
+          });
+        }
+      } catch (err) {
+        this.$toasts.error("Something went wrong with the upload. Check the console or tray again later");
+        throw err;
+      }
+      if (!error) {
+        this.$toasts.success(response.data.message);
+      }
     },
     async uploadParticipants() {
       const participantFile = document.getElementById("participant-file").files[0];
