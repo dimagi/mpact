@@ -50,7 +50,7 @@ import 'vue-advanced-chat/dist/vue-advanced-chat.css';
 import RoomsListHeader from '../components/RoomsListHeader.vue';
 import FlaggedMessagesList from '../components/FlaggedMessagesList.vue';
 
-const ChatWindow = () => import('vue-advanced-chat');
+import ChatWindow from 'vue-advanced-chat';
 
 export default {
   name: 'chat',
@@ -306,7 +306,7 @@ export default {
           _id: m.id || '',
           messageId: m.message.id || '',
           content: m.message || '',
-          sender_id: m.sender_id || '',
+          senderId: m.sender_id || '',
           date: dateHelpers.convertDate(m.date),
           timestamp: dateHelpers.convertTime(m.date),
           username: m.sender_name, 
@@ -392,7 +392,7 @@ export default {
 </script>
 <style scoped>
 /* A little CSS hack to add some custom styles */
-.vac-room-item > .mpact-custom-room-list-item {
+.vac-room-item > .vac-room-container > .mpact-custom-room-list-item {
   /* Repeat the parent CSS properties */
   position: relative;
   min-height: 71px;
@@ -409,30 +409,30 @@ export default {
   margin-right: -32px;
 }
 
-.vac-room-item > .flagged-msgs {
+.vac-room-item > .vac-room-container > .flagged-msgs {
   background-color: #717579 ;
   color: #fff;
 }
-.vac-room-item > .flagged-msgs:hover,
-.vac-room-selected > .flagged-msgs {
+.vac-room-item > .vac-room-container > .flagged-msgs:hover,
+.vac-room-selected > .vac-room-container > .flagged-msgs {
   background-color: #343a40; /* bg-dark */
 }
 
-.vac-room-item > .group-chat {
+.vac-room-item > .vac-room-container > .group-chat {
   background-color: #F6FDF7;
 }
 
-.vac-room-item > .individual-chat {
+.vac-room-item > .vac-room-container > .individual-chat {
   background-color: #F6F9FD;
 }
 
 /* Tetradic https://www.canva.com/colors/color-wheel/  */
-.vac-room-item > .group-chat:hover,
-.vac-room-selected > .group-chat {
+.vac-room-item > .vac-room-container > .group-chat:hover,
+.vac-room-selected > .vac-room-container > .group-chat {
   background-color: #E5FAE6;
 }
-.vac-room-item > .individual-chat:hover,
-.vac-room-selected > .individual-chat {
+.vac-room-item > .vac-room-container > .individual-chat:hover,
+.vac-room-selected > .vac-room-container > .individual-chat {
   background-color: #CCDDF4;
 }
 
