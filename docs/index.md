@@ -48,3 +48,32 @@ The actual sending of messages is managed via
 When schedules are uploaded, once-off `PeriodicTask` objects are created
 for each row in the schedule. These will call `tasks.send_msgs` with the
 appropriate arguments for the chat.
+
+
+### Creating schedules
+
+Click the "Download schedules" icon and save "schedules.xlsx". Then open
+it in your spreadsheet application.
+
+You will see that the sheet has three columns, "Days", "Message" and
+"Comment".
+
+"Days" is the interval, in days, from the creation of the chat group, at
+which the message will be sent. e.g. A value of "1" means that the
+message will be sent on the first day.
+
+"Message" is the message that will be sent.
+
+"Comment" is any information that you or other administrators might find
+useful. This could be a translation of the message, if it is not in a
+language you can read, or maybe context that would help explain the
+message.
+
+The sheet's tab is includes the name of the group, and its Telegram ID.
+It is important not to change the Telegram ID, otherwise mPACT will be
+unable to send the messages to the group.
+
+![Schedules](img/03_schedules.png "Schedules")
+
+When you are done, save the spreadsheet and upload it using the "Upload
+schedules" icon.
