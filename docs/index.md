@@ -77,3 +77,32 @@ unable to send the messages to the group.
 
 When you are done, save the spreadsheet and upload it using the "Upload
 schedules" icon.
+
+
+### The admin interface
+
+mPACT has a second interface, the admin interface, which gives
+superusers direct access to data. Normal users are not given a link to
+the admin interface. Superusers will need to navigate to it manually, by
+changing their browser's URL to ".../admin/". For example, if you are
+using the environment on Heroku, the URL will start with
+"http://mpact-demo.herokuapp.com/chat". Change that to
+"http://mpact-demo.herokuapp.com/admin/" and log in as the superuser.
+
+![Admin interface](img/04_admin_interface.png "Admin interface")
+
+Choose "Scheduled messages" under "MPACT".
+
+There you will see a list of the messages you uploaded. By using the box
+on the right, you can filter the list to show only the messages that are
+enabled.
+
+If you click on a message, it will show you its details. Here you can 
+edit it, and disable or enable it.
+
+If you disable a message, mPACT will not send it.
+
+You can also use the admin interface to delete scheduled messages and
+create new ones. If you download schedules from the normal interface
+again, you will see that the changes you made in the admin interface are
+present in the downloaded spreadsheet.
