@@ -138,7 +138,7 @@ class ScheduleMessages(APIView):
         """
         if not GroupChat.objects.exists():
             return Response({
-                'message': 'You must create a group chat before uploading a message schedule.',
+                'message': 'You must create a group chat before downloading a message schedule.',
             }, status=400)
 
         headers = ["Days", "Message", "Comment"]
