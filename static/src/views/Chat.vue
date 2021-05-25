@@ -133,6 +133,12 @@ export default {
             console.error(err);
           }
         }
+        // For some reason, updates to unread count on individual chats are
+        // not triggering a re-render. According to
+        // https://michaelnthiessen.com/force-re-render/ the 'right' way would
+        // be to add a key to the loop that generates the room-list, but that
+        // happens inside the plugin.
+        this.$forceUpdate();
       },
       deep: true // required since we're watching an object
     }
