@@ -66,40 +66,6 @@ More details on available commands can be found by running:
 make
 ```
 
-# Creating a new chat group
-
-1. Ensure **mpact_bot.py** is running.
-2. In Telegram, open the menu and choose "New Group".
-3. Add the bot to the group. It will not appear as a contact. You will
-   need to type its username (the same username as the BOT_USERNAME
-   environment variable).
-4. Give your new group a name.
-
-The bot will be notified of its new group, and the group will be added
-to the database. The next time you log into mPACT, the group will appear
-in the left panel.
-
-# Technical Documentation
-
-*This section is a work in progress.*
-
-## Scheduling
-
-Chats are associated with a set of `ScheduledMessage` objects, which represent the schedule
-of messages to go out. All previous scheduled messages are disabled when a new schedule is uploaded.
-
-You can test scheduling by running the following commands. Get `<container_id>` from running `docker ps`.
-
-```bash
-docker cp /path/to/mpact_schedules.xlsx <container_id>:/mpact_schedules.xlsx
-docker-compose exec web ./manage.py upload_schedule /mpact_schedules.xlsx 
-```
-
-The actual sending of messages is managed via [`django-celery-beat`](https://django-celery-beat.readthedocs.io/en/latest/).
-
-When schedules are uploaded, once-off `PeriodicTask` objects are created for each row in the schedule.
-These will call `tasks.send_msgs` with the appropriate arguments for the chat.
-
 # Deployment
 
 ## Demo / Test environment
@@ -123,3 +89,8 @@ The `heroku.yml` file can also be used to deploy new environments. The instructi
 6. Create DB and superuser: `heroku run python manage.py migrate`, `heroku run python manage.py createsuperuser`
 
 The current demo site is configured to automatically update with every commit to the `main` branch on github.
+
+# mPACT Administration
+
+See [the Admin documentation](docs/index.md) for more information on how
+to administrate your deployed mPACT instance.
