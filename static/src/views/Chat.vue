@@ -238,6 +238,12 @@ export default {
         const isFlaggedMessages = (this.roomId === this.flaggedMsgsId);
         this.showFooter = !isFlaggedMessages;
 
+        // Get the number of unread messages in this room before we call fetchMessages,
+        // which will reset the count to zero. We use this to manually mark the last X
+        // messages as 'unseen' so that we get that nice blue bar separating the new 
+        // messages.
+        const currentUnreadMsgCount = this.$store.state.unread_messages[this.roomId];
+
         const response = isFlaggedMessages ? 
                 await MessageService.fetchFlaggedMessages({}) : 
                 await MessageService.fetchMessages(this.roomId, this.offset, this.batchSize);
@@ -284,6 +290,11 @@ export default {
           }
         }
         this.offset += messages.length;
+
+        // Finally, let's modify the last X messages to be unseen
+        for(let i=this.messages.length-1; i>=Math.max(this.messages.length-currentUnreadMsgCount,0); i--) {
+          this.messages[i].seen = false;
+        }
       } catch (err) {
         console.error(err);
       }
@@ -318,6 +329,7 @@ export default {
           username: m.sender_name, 
           isFlagged: m.is_flagged,
           roomId: this.roomId,
+          seen: true
         });
       });
       return formattedMessages;
@@ -358,12 +370,21 @@ export default {
         console.error(err);
       }
     },
-    async changeChat(event) {
-      const newChatId = event.room.roomId;
-      const options = event.options || {reset:false};
+    async changeChat({room, options={}}) {
+      const newChatId = room.roomId;
 
       if(options.reset) {
+        // HACK: This is a proper hack. We should not be doing this, but we are.
+        // This reaches into the plugin [ChatWindow] -> [RoomsList, Room] to the 
+        // Room component and resets the newMessages array. Otherwise the array
+        // just continues to grow and the unread messages bar does not work correctly.
+        // There is no documentation about this and I couldn't figure out how it
+        // was intended to work, so we've hacked around it. Not ideal, but it's 
+        // a minor, nice-to-have feature, so if it breaks and must be removed
+        // it's not a trainsmash.
+        this.$children[0].$children[1].newMessages.length = 0;
         this.offset = 0;
+        return this.changeChat({room:room});
       }
 
       if(this.chatId === newChatId) {
