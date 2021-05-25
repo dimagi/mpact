@@ -66,79 +66,6 @@ More details on available commands can be found by running:
 make
 ```
 
-# Legacy developer set up instructions
-
-1. Install prerequisite packages
-
-       $ sudo apt install python3.8-venv
-
-2. Create and activate a Python virtual environment
-
-       $ python3.8 -m venv venv
-       $ source venv/bin/activate
-
-3. Install requirements
-
-       $ pip install -r requirements.txt
-       $ npm install
-
-
-## Set Environment Variables
-
-Secrets are set using environment variables.
-
-You can generate a secret key with
-
-    $ python3 -c 'import string
-    import secrets
-    chars = string.ascii_letters + string.digits
-    key = "".join(secrets.choice(chars) for x in range(64))
-    print(key)'
-
-1. Save the environment variables in a `.envrc` file:
-
-       $ cat > .envrc <<EOF
-       export DEPLOY_ENV=dev
-       export SECRET_KEY=<Django Secret Key>
-       export BOT_USERNAME=<Telegram Bot Username>
-       export BOT_TOKEN=<Telegram Bot Token>
-       export TELEGRAM_API_ID=<Telegram API ID>
-       export TELEGRAM_API_HASH=<Telegram API Hash>
-       export ALLOWED_HOSTS='127.0.0.1,localhost'
-       export DATABASE_URL=sqlite:///mpact.sqlite
-       export SECURED_URL_SECRET_KEY=<Another Secret Key>
-       export SECURITY_PASSWORD_SALT=<Password Salt>
-       EOF
-
-2. Set them. You can get this to happen [automatically][direnv], but
-   doing it manually is easy:
-
-       $ source .envrc
-
-
-## First time use
-
-The first time you run your environment, you will need to migrate the
-database and create a superuser:
-
-    $ python3 manage.py migrate
-    $ python3 manage.py createsuperuser
-
-
-## Run
-
-You can run your development environment with the following commands,
-each in their own terminal and/or by using a tool like [tmux][tmux].
-
-    (redis) $ redis-server
-    (bot) $ python3 mpact_bot.py
-    (worker) $ celery -A telegram_bot worker -l info --pool=solo
-    (beat) $ celery -A telegram_bot beat -l info \
-             --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    (server) $ python3 manage.py runserver
-    (client) $ npm run dev
-
-
 # Creating a new chat group
 
 1. Ensure **mpact_bot.py** is running.
@@ -196,7 +123,3 @@ The `heroku.yml` file can also be used to deploy new environments. The instructi
 6. Create DB and superuser: `heroku run python manage.py migrate`, `heroku run python manage.py createsuperuser`
 
 The current demo site is configured to automatically update with every commit to the `main` branch on github.
-
-
-[direnv]: https://github.com/direnv/direnv/#direnv----unclutter-your-profile
-[tmux]: https://github.com/tmux/tmux#welcome-to-tmux
