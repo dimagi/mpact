@@ -51,6 +51,20 @@ class GroupChat(ChatBase):
     def __str__(self):
         return f"{self.id} - {self.title}"
 
+    def save(self, *args, **kwargs):
+        schedule_changed = False
+        if self.pk:
+            previous_model = GroupChat.objects.get(pk=self.pk)
+            schedule_changed = (
+                self.schedule_start_date != previous_model.schedule_start_date or
+                self.schedule_start_time != previous_model.schedule_start_time
+            )
+
+        super().save(*args, **kwargs)
+        if schedule_changed:
+            from mpact.scheduling import rebuild_schedule_for_group
+            rebuild_schedule_for_group(self)
+
 
 class Bot(BaseModel):
     id = models.IntegerField(primary_key=True)
