@@ -19,7 +19,11 @@ A good place to start is to create a new chat group.
 1. Add the bot to the group. It will not appear as a contact. You will
    need to type its username (the same username as the BOT_USERNAME
    environment variable).
-1. Give your new group a name.
+1. Give your new group a name, and press the check mark to create the
+   group.
+1. Press the group name to see its members.
+1. Long-press on the bot and select "Promote to Admin", otherwise the
+   bot will be unable to see any messages from other members.
 
 The bot will be notified of its new group, and the group will be added
 to the database. The next time you refresh the page or log into mPACT,
