@@ -30,17 +30,8 @@ the group will appear in the left panel.
 
 ## Scheduling
 
-Chats are associated with a set of `ScheduledMessage` objects, which
-represent the schedule of messages to go out. All previous scheduled
-messages are disabled when a new schedule is uploaded.
-
-You can test scheduling in a development environment by running the
-following commands. Get `<container_id>` from running `docker ps`.
-
-```bash
-docker cp /path/to/mpact_schedules.xlsx <container_id>:/mpact_schedules.xlsx
-docker-compose exec web ./manage.py upload_schedule /mpact_schedules.xlsx 
-```
+Group chats are associated with a set of `ScheduledMessage` objects,
+which represent the schedule of messages to go out.
 
 The actual sending of messages is managed via
 [`django-celery-beat`](https://django-celery-beat.readthedocs.io/en/latest/).
@@ -69,14 +60,24 @@ useful. This could be a translation of the message, if it is not in a
 language you can read, or maybe context that would help explain the
 message.
 
-The sheet's tab is includes the name of the group, and its Telegram ID.
-It is important not to change the Telegram ID, otherwise mPACT will be
-unable to send the messages to the group.
+Each chat group has its own sheet. The sheet's tab includes the
+name of the group and its Telegram ID.
+
+It is important not to change the Telegram ID, otherwise mPACT will not
+know which group the messages are for, and will be unable to send the
+messages to the group.
+
+In order for the spreadsheet to include the Telegram IDs of each chat
+group, the group must first be created, and then the schedules
+downloaded, for messages to be added.
 
 ![Schedules](img/03_schedules.png "Schedules")
 
 When you are done, save the spreadsheet and upload it using the "Upload
 schedules" icon.
+
+All previous scheduled messages are disabled when a new schedule is
+uploaded.
 
 
 ### The admin interface
@@ -97,12 +98,13 @@ There you will see a list of the messages you uploaded. By using the box
 on the right, you can filter the list to show only the messages that are
 enabled.
 
-If you click on a message, it will show you its details. Here you can 
-edit it, and disable or enable it.
+If you click on a message, it will show you its details.
 
-If you disable a message, mPACT will not send it.
+**NOTE:** Messages are scheduled to be sent, as they are, when schedules
+are uploaded. Changes made to messages in the admin interface will not
+affect messages that are already scheduled to be sent.
 
-You can also use the admin interface to delete scheduled messages and
-create new ones. If you download schedules from the normal interface
-again, you will see that the changes you made in the admin interface are
-present in the downloaded spreadsheet.
+If you download schedules from the normal interface, you will see that
+any changes you made in the admin interface are present in the
+downloaded spreadsheet. By uploading the spreadsheet, mPACT will
+re-schedule the messages, and bring those changes into effect.
