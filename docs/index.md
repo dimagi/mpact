@@ -112,3 +112,21 @@ If you download schedules from the normal interface, you will see that
 any changes you made in the admin interface are present in the
 downloaded spreadsheet. By uploading the spreadsheet, mPACT will
 re-schedule the messages, and bring those changes into effect.
+
+
+## Individual chats
+
+In order to engage with participants one-on-one, the participant must
+first message the bot directly. In order to do that, they can ...
+
+1. Press the bot's name to open their details
+1. Press the "message" icon
+1. Send a message
+
+The interface will not show a separate chat for the participant
+immediately. The next time you refresh the page or log into mPACT,
+an individual chat with the participant will appear in the left panel.
+
+After that, messages from participants will appear as they are sent.
+
+![Individual chat](img/05_individual_chat.png "Individual chat")
