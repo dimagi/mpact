@@ -130,3 +130,34 @@ an individual chat with the participant will appear in the left panel.
 After that, messages from participants will appear as they are sent.
 
 ![Individual chat](img/05_individual_chat.png "Individual chat")
+
+
+## Uploading study participants
+
+You can add participants to the study in bulk.
+
+mPACT expects a spreadsheet in Excel 2007-365 (.xlsx) format. It will
+use the first worksheet. It looks for a column with the heading "Study
+ID", and a column with the heading "Phone Number" (case sensitive). You
+can use this [empty sample spreadsheet][1] as a start.
+
+Click the "Upload Study Participants" icon. You will be prompted for the
+spreadsheet.
+
+mPACT does not store the phone numbers of participants. It uses the
+Telegram API to look up their Telegram ID. It will do this for each
+participant.
+
+**NOTE:** The Telegram API will only return the Telegram ID of
+participants that have messaged the bot in the past. (Telegram does not
+allow bots to look up random people.)
+
+
+## Exporting study data
+
+Click the "Export" icon to download all messages. mPACT will generate a
+CSV file that includes the senders' study participant ID (blank if they
+are not study participants) and message details.
+
+
+  [1]: sample/study_participants.xlsx
