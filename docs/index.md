@@ -150,7 +150,10 @@ participant.
 
 **NOTE:** The Telegram API will only return the Telegram ID of
 participants that have messaged the bot in the past. (Telegram does not
-allow bots to look up random people.)
+allow bots to look up random people.) Thus, it is important to ask all participants
+to directly message the bot if their data is to be linked to the relevant Study ID.
+Participants must message the bot prior to the upload, but the upload can be done
+more than once with no issues.
 
 
 ## Flagging messages
