@@ -34,7 +34,6 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='').split(",")
 # Application definition
 
 INSTALLED_APPS = [
-    "mpact",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "django_celery_beat",
     "channels",
+    "mpact",
 ]
 
 MIDDLEWARE = [
