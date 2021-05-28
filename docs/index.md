@@ -171,8 +171,9 @@ left, and they are marked as flagged in exported study data.
 ## Exporting study data
 
 Click the "Export" icon to download all messages. mPACT will generate a
-CSV file that includes the senders' study participant ID (blank if they
-are not study participants) and message details.
+CSV file that includes the senders' study participant ID (blank if
+participant details have not been uploaded for that participant) 
+and message details.
 
 
   [1]: sample/study_participants.xlsx
