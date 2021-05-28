@@ -10,7 +10,7 @@ interface:
 
 You can mouse over the icons in the top left to see what each one does.
 
-A good place to start is to create a new chat group.
+A good place to start is to create a new chat group, which is handled by Telegram and not the mPACT application.
 
 
 ## Creating a new chat group
