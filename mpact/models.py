@@ -160,3 +160,27 @@ class ScheduledMessage(BaseModel):
     message = models.TextField()
     comment = models.TextField(blank=True)
     enabled = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        group_changed = False
+        schedule_changed = False
+        previous_model = None
+        if self.pk:
+            previous_model = ScheduledMessage.objects.get(pk=self.pk)
+            group_changed = self.group != previous_model.group
+            at_least_one_enabled = self.enabled or previous_model.enabled
+            schedule_changed = (
+                at_least_one_enabled and (
+                    group_changed or
+                    self.enabled != previous_model.enabled or
+                    self.day != previous_model.day or
+                    self.message != previous_model.message
+                )
+            )
+
+        super().save(*args, **kwargs)
+        if schedule_changed:
+            from mpact.scheduling import rebuild_schedule_for_group
+            rebuild_schedule_for_group(self.group)
+            if group_changed:
+                rebuild_schedule_for_group(previous_model.group)
