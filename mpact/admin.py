@@ -1,8 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.db import models
-from django.forms import ChoiceField
-from django_celery_beat.admin import PeriodicTask, PeriodicTaskAdmin, PeriodicTaskForm
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 from .models import (
     Bot,
@@ -18,6 +16,8 @@ from .models import (
 
 # clean up unused models from admin
 admin.site.unregister(Group)
+admin.site.unregister(OutstandingToken)
+admin.site.unregister(BlacklistedToken)
 
 admin.site.register(GroupChat)
 admin.site.register(Bot)
