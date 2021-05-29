@@ -18,3 +18,8 @@ Twisted[tls,http2]
 # deployment libraries
 gunicorn==20.1.0
 django-heroku==0.3.1
+
+# documentation libraries
+sphinx<4
+myst-parser
+
