@@ -110,6 +110,26 @@ any changes you made in the admin interface are present in the
 downloaded spreadsheet.
 
 
+### Starting schedules
+
+Choose "Group chats", also under "MPACT", and click on a group chat to
+edit it.
+
+![Starting schedules](img/09_schedule_start.png "Starting schedules")
+
+At the bottom of the form are two fields: "Schedule start date" and
+"Schedule start time". Their default values are the date and time when
+the group chat was created, but you can change their values.
+
+Change them to the date and time that marks the start of the schedule
+of this group chat's scheduled messages. So a message that is scheduled
+to be sent after two days will be sent two days after the moment given
+here.
+
+Use these fields to reset the schedule, or to change the time at which
+they are sent.
+
+
 ## User management
 
 mPACT users are managed with the admin interface.
