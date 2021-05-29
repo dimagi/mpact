@@ -1,51 +1,61 @@
-mPACT Administration
-====================
+=============================
+UW mPACT Administration Guide
+=============================
 
-## The user interface
+.. toctree::
+   :maxdepth: 2
+
+
+The user interface
+------------------
 
 The first time the superuser logs in, they will see an empty user
 interface:
 
-![Empty user interface](img/01_first_time_login.png "Empty user interface")
+.. image:: img/01_first_time_login.png
+   :alt: Empty user interface
 
 You can mouse over the icons in the top left to see what each one does.
 
 A good place to start is to create a new chat group, which is handled by Telegram and not the mPACT application.
 
 
-## Creating a new chat group
+Creating a new chat group
+-------------------------
 
-1. In Telegram, open the menu and choose "New Group".
-1. Add the bot to the group. It will not appear as a contact. You will
+#. In Telegram, open the menu and choose "New Group".
+#. Add the bot to the group. It will not appear as a contact. You will
    need to type its username (the same username as the BOT_USERNAME
    environment variable).
-1. Give your new group a name, and press the check mark to create the
+#. Give your new group a name, and press the check mark to create the
    group.
-1. Press the group name to see its members.
-1. Long-press on the bot and select "Promote to Admin", otherwise the
+#. Press the group name to see its members.
+#. Long-press on the bot and select "Promote to Admin", otherwise the
    bot will be unable to see any messages from other members.
 
 The bot will be notified of its new group, and the group will be added
 to the database. The next time you refresh the page or log into mPACT,
 the group will appear in the left panel.
 
-![New group](img/02_new_group.png "New group")
+.. image:: img/02_new_group.png
+   :alt: New group
 
 
-## Scheduling
+Scheduling
+----------
 
 Group chats are associated with a set of `ScheduledMessage` objects,
 which represent the schedule of messages to go out.
 
-The actual sending of messages is managed via
-[`django-celery-beat`](https://django-celery-beat.readthedocs.io/en/latest/).
+The actual sending of messages is managed via `django-celery-beat`_.
 
 When schedules are uploaded, once-off `PeriodicTask` objects are created
 for each row in the schedule. These will call `tasks.send_msgs` with the
 appropriate arguments for the chat.
 
 
-### Creating schedules
+Creating schedules
+^^^^^^^^^^^^^^^^^^
 
 Click the "Download schedules" icon and save "schedules.xlsx". Then open
 it in your spreadsheet application.
@@ -75,7 +85,8 @@ In order for the spreadsheet to include the Telegram IDs of each chat
 group, the group must first be created, and then the schedules
 downloaded, for messages to be added.
 
-![Schedules](img/03_schedules.png "Schedules")
+.. image:: img/03_schedules.png
+   :alt: Schedules
 
 When you are done, save the spreadsheet and upload it using the "Upload
 schedules" icon.
@@ -84,7 +95,8 @@ All previous scheduled messages are disabled when a new schedule is
 uploaded.
 
 
-### The admin interface
+The admin interface
+^^^^^^^^^^^^^^^^^^^
 
 mPACT has a second interface, the admin interface, which gives
 superusers direct access to data. Normal users are not given a link to
@@ -94,7 +106,8 @@ using the environment on Heroku, the URL will start with
 "http://mpact-demo.herokuapp.com/chat". Change that to
 "http://mpact-demo.herokuapp.com/admin/" and log in as the superuser.
 
-![Admin interface](img/04_admin_interface.png "Admin interface")
+.. image:: img/04_admin_interface.png
+   :alt: Admin interface
 
 Choose "Scheduled messages" under "MPACT".
 
@@ -110,12 +123,14 @@ any changes you made in the admin interface are present in the
 downloaded spreadsheet.
 
 
-### Starting schedules
+Starting schedules
+^^^^^^^^^^^^^^^^^^
 
 Choose "Group chats", also under "MPACT", and click on a group chat to
 edit it.
 
-![Starting schedules](img/09_schedule_start.png "Starting schedules")
+.. image:: img/09_schedule_start.png
+   :alt: Starting schedules
 
 At the bottom of the form are two fields: "Schedule start date" and
 "Schedule start time". Their default values are the date and time when
@@ -130,7 +145,8 @@ Use these fields to reset the schedule, or to change the time at which
 they are sent.
 
 
-## User management
+User management
+---------------
 
 mPACT users are managed with the admin interface.
 
@@ -140,12 +156,14 @@ list of users, and at first, it will include only your user.
 To add a new user, click "Add user". You will be prompted for their
 username and password:
 
-![Add user](img/07_add_user.png "Add user")
+.. image:: img/07_add_user.png
+   :alt: Add user
 
 Click "Save", and then proceed to enter optional data about the user.
 
 
-### User permissions
+User permissions
+^^^^^^^^^^^^^^^^
 
 New users are marked "Active" by default. Users who are not active will
 not be allowed to log in, but their accounts remain in the database, and
@@ -159,7 +177,8 @@ Users with "superuser" status can log into the admin interface and have
 all user permissions.
 
 
-### User groups
+User groups
+^^^^^^^^^^^
 
 If you have different kinds of staff users, user groups make it easier
 to assign different sets of permissions to them.
@@ -169,20 +188,22 @@ Again under "Authentication and Authorization", choose "Groups".
 Click "Add group" to create a new group. You can give it a name, and
 assign permissions to it:
 
-![Add group](img/08_add_group.png "Add group")
+.. image:: img/08_add_group.png
+   :alt: Add group
 
 Now you can edit users and assign them to groups in order to grant them
 those groups' permissions.
 
 
-## Individual chats
+Individual chats
+----------------
 
 In order to engage with participants one-on-one, the participant must
 first message the bot directly. In order to do that, they can ...
 
-1. Press the bot's name to open their details
-1. Press the "message" icon
-1. Send a message
+#. Press the bot's name to open their details
+#. Press the "message" icon
+#. Send a message
 
 The interface will not show a separate chat for the participant
 immediately. The next time you refresh the page or log into mPACT,
@@ -190,17 +211,19 @@ an individual chat with the participant will appear in the left panel.
 
 After that, messages from participants will appear as they are sent.
 
-![Individual chat](img/05_individual_chat.png "Individual chat")
+.. image:: img/05_individual_chat.png
+   :alt: Individual chat
 
 
-## Uploading study participants
+Uploading study participants
+----------------------------
 
 You can add participants to the study in bulk.
 
 mPACT expects a spreadsheet in Excel 2007-365 (.xlsx) format. It will
 use the first worksheet. It looks for a column with the heading "Study
 ID", and a column with the heading "Phone Number" (case sensitive). You
-can use this [empty sample spreadsheet][1] as a start.
+can use this `empty sample spreadsheet`_ as a start.
 
 Click the "Upload Study Participants" icon. You will be prompted for the
 spreadsheet.
@@ -217,19 +240,22 @@ Participants must message the bot prior to the upload, but the upload can be don
 more than once with no issues.
 
 
-## Flagging messages
+Flagging messages
+-----------------
 
 Flagging messages allows you to draw attention to specific messages for
 follow-up or for important content. Click the down arrow to the right of
 the participant's name, and choose "Flag message".
 
-![Flag message](img/06_flag_message.png "Flag message")
+.. image:: img/06_flag_message.png
+   :alt: Flag message
 
 Flagged messages are listed under "Flagged Messages" in the panel on the
 left, and they are marked as flagged in exported study data.
 
 
-## Exporting study data
+Exporting study data
+--------------------
 
 Click the "Export" icon to download all messages. mPACT will generate a
 CSV file that includes the senders' study participant ID (blank if
@@ -237,4 +263,5 @@ participant details have not been uploaded for that participant)
 and message details.
 
 
-  [1]: https://github.com/dimagi/mpact/blob/main/docs/sample/study_participants.xlsx
+.. _django-celery-beat: https://django-celery-beat.readthedocs.io/en/latest/
+.. _empty sample spreadsheet: https://github.com/dimagi/mpact/blob/main/docs/sample/study_participants.xlsx
