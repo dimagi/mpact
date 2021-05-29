@@ -102,16 +102,12 @@ There you will see a list of the messages you uploaded. By using the box
 on the right, you can filter the list to show only the messages that are
 enabled.
 
-If you click on a message, it will show you its details.
-
-**NOTE:** Messages are scheduled to be sent, as they are, when schedules
-are uploaded. Changes made to messages in the admin interface will not
-affect messages that are already scheduled to be sent.
+If you click on a message, it will show you its details. Any changes
+that you make will update messages that are scheduled to be sent.
 
 If you download schedules from the normal interface, you will see that
 any changes you made in the admin interface are present in the
-downloaded spreadsheet. By uploading the spreadsheet, mPACT will
-re-schedule the messages, and bring those changes into effect.
+downloaded spreadsheet.
 
 
 ## Individual chats
