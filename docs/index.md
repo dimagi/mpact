@@ -237,4 +237,4 @@ participant details have not been uploaded for that participant)
 and message details.
 
 
-  [1]: sample/study_participants.xlsx
+  [1]: https://github.com/dimagi/mpact/blob/main/docs/sample/study_participants.xlsx
