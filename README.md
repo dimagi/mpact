@@ -92,5 +92,5 @@ The current demo site is configured to automatically update with every commit to
 
 # mPACT Administration
 
-See [the Admin documentation](docs/index.md) for more information on how
-to administrate your deployed mPACT instance.
+See [the Admin documentation](https://uw-mpact.readthedocs.io/) for more
+information on how to administrate your deployed mPACT instance.
