@@ -2,10 +2,6 @@
 UW mPACT Administration Guide
 =============================
 
-.. toctree::
-   :maxdepth: 2
-
-
 The user interface
 ------------------
 
