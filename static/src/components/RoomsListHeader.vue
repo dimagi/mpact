@@ -61,10 +61,12 @@ export default {
             this.$toasts.error("'" +ws+ "' is not a known group! Please download the schedule and fill it out.", {duration: 7500})
           });
         }
-        if(Array.isArray(response.data['bad rows'])) {
-          response.data["bad rows"]?.forEach( (r) => {
+        if(typeof response.data['bad rows'] === 'object' && response.data['bad rows'] !== null) {
+          Object.keys(response.data['bad rows']).forEach( e => {
             error=true;
-            this.$toasts.error("'" +r+ "' is a poorly formatted row.", {duration: 7500})
+            response.data['bad rows'][e].forEach( rownNum => {
+              this.$toasts.error("Row "+rownNum+" in sheet '" +e.slice(0,e.indexOf('|'))+ "' is a poorly formatted row.", {duration: 10000})
+            });
           });
         }
       } catch (err) {
