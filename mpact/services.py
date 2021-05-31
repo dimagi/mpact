@@ -262,6 +262,15 @@ def schedule_messages(xlsx_file):
 
     def is_blank(val):
         return val is None or val == ''
+    
+    def is_positive_numeric(val):
+        try:
+            val=int(val)
+            if val >= 0:
+                return True
+        except ValueError:
+            pass
+        return False
 
     book = tablib.Databook()
     book.load(xlsx_file, "xlsx")
@@ -284,8 +293,8 @@ def schedule_messages(xlsx_file):
             days = row["Days"]
             message = row["Message"]
             comment = row["Comment"] or ''
-            if is_blank(days) or is_blank(message):
-                bad_rows[sheet["title"]].append(n)
+            if is_blank(days) or is_blank(message) or not is_positive_numeric(days):
+                bad_rows[sheet["title"]].append(n+1)
                 continue
 
             messages.append(ScheduledMessage.objects.create(
