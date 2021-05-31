@@ -247,7 +247,15 @@ the participant's name, and choose "Flag message".
    :alt: Flag message
 
 Flagged messages are listed under "Flagged Messages" in the panel on the
-left, and they are marked as flagged in exported study data.
+left.
+
+.. note::
+   Under "Flagged Messages", users will only see the messages that they
+   themselves flagged; they will not see the messages flagged by other
+   users.
+
+In exported study data, messages flagged by any user are marked as
+flagged.
 
 
 Exporting study data
