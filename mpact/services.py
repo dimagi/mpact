@@ -265,9 +265,7 @@ def schedule_messages(xlsx_file):
     
     def is_positive_numeric(val):
         try:
-            val=int(val)
-            if val >= 0:
-                return True
+            return int(val) >= 0
         except ValueError:
             pass
         return False
