@@ -29,6 +29,13 @@ The bot will be notified of its new group, and the group will be added
 to the database. The next time you refresh the page or log into mPACT,
 the group will appear in the left panel.
 
+.. note::
+   The bot needs to be added to the group at the same time the group is 
+   created. The web application currently only looks for the "chat created"
+   event. If a bot is added to a group after it is initially created,
+   the web application will never be aware of it and will disregard any
+   incoming messages.
+
 .. image:: img/02_new_group.png
    :alt: New group
 
