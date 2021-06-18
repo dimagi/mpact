@@ -45,25 +45,23 @@ class GroupChat(ChatBase):
     """
     title = models.TextField()
     participant_count = models.IntegerField(default=0)
-    schedule_start_date = models.DateField(default=timezone.now)
-    schedule_start_time = models.TimeField(default=timezone.now)
+    schedule_start_date = models.DateField(default=lambda: timezone.now().date())
+    schedule_start_time = models.TimeField(default=lambda: timezone.now().time())
 
     def __str__(self):
         return f"{self.id} - {self.title}"
 
     def save(self, *args, **kwargs):
-        schedule_changed = False
-        if self.pk:
-            try:
-                previous_model = GroupChat.objects.get(pk=self.pk)
-                schedule_changed = (
-                    self.schedule_start_date != previous_model.schedule_start_date or
-                    self.schedule_start_time != previous_model.schedule_start_time
-                )
-            except GroupChat.DoesNotExist:
-                # odd that we have a PK but nothing in the DB, but that's fine
-                # it's always safe to rebuild the schedule even if nothing changed
-                schedule_changed = True
+        try:
+            # self.pk is a Telegram ID
+            previous_model = GroupChat.objects.get(pk=self.pk)
+            schedule_changed = (
+                self.schedule_start_date != previous_model.schedule_start_date or
+                self.schedule_start_time != previous_model.schedule_start_time
+            )
+        except GroupChat.DoesNotExist:
+            # `previous_model` doesn't exist because this GroupChat is new
+            schedule_changed = False
 
         super().save(*args, **kwargs)
         if schedule_changed:
