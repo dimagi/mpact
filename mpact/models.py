@@ -54,11 +54,16 @@ class GroupChat(ChatBase):
     def save(self, *args, **kwargs):
         schedule_changed = False
         if self.pk:
-            previous_model = GroupChat.objects.get(pk=self.pk)
-            schedule_changed = (
-                self.schedule_start_date != previous_model.schedule_start_date or
-                self.schedule_start_time != previous_model.schedule_start_time
-            )
+            try:
+                previous_model = GroupChat.objects.get(pk=self.pk)
+                schedule_changed = (
+                    self.schedule_start_date != previous_model.schedule_start_date or
+                    self.schedule_start_time != previous_model.schedule_start_time
+                )
+            except GroupChat.DoesNotExist:
+                # odd that we have a PK but nothing in the DB, but that's fine
+                # it's always safe to rebuild the schedule even if nothing changed
+                schedule_changed = True
 
         super().save(*args, **kwargs)
         if schedule_changed:
