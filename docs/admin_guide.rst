@@ -17,13 +17,13 @@ Creating a new chat group
 
 #. In Telegram, open the menu and choose "New Group".
 #. Add the bot to the group. It will not appear as a contact. You will
-   need to type its username (the same username as the BOT_USERNAME
+   need to type its username (mpact_demo_bot, the same username as the BOT_USERNAME
    environment variable).
 #. Give your new group a name, and press the check mark to create the
    group.
 #. Press the group name to see its members.
 #. Long-press on the bot and select "Promote to Admin", otherwise the
-   bot will be unable to see any messages from other members.
+   bot will be unable to see any messages from other members. /KR: my interface is different/
 
 The bot will be notified of its new group, and the group will be added
 to the database. The next time you refresh the page or log into mPACT,
@@ -175,7 +175,6 @@ the "user permissions" field below.
 Users with "superuser" status can log into the admin interface and have
 all user permissions.
 
-
 User groups
 ^^^^^^^^^^^
 
@@ -200,7 +199,7 @@ Individual chats
 In order to engage with participants one-on-one, the participant must
 first message the bot directly. In order to do that, they can ...
 
-#. Press the bot's name to open their details
+#. Within the group chat, press the bot's name to open their details
 #. Press the "message" icon
 #. Send a message
 
@@ -238,6 +237,7 @@ to directly message the bot if their data is to be linked to the relevant Study 
 Participants must message the bot prior to the upload, but the upload can be done
 more than once with no issues.
 
+/// KR: add info on how to access participants in admin interface. Can we only see participants in the admin interface if they've messaged the bot? ////
 
 Flagging messages
 -----------------
@@ -259,6 +259,8 @@ left.
 
 In exported study data, messages flagged by any user are marked as
 flagged.
+
+//// KR: add info about unflagging using red X////
 
 
 Exporting study data
