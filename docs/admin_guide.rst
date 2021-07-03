@@ -23,7 +23,8 @@ Creating a new chat group
    group.
 #. Press the group name to see its members.
 #. Long-press on the bot and select "Promote to Admin", or press the edit button for the group, select Administrators, and add the bot as an admin. Otherwise the
-   bot will be unable to see any messages from other members. ///KR: should this still be included?///
+   bot will be unable to see any messages from other members.
+   .. KR: should this still be included?
 
 The bot will be notified of its new group, and the group will be added
 to the database. The next time you refresh the page or log into mPACT,
