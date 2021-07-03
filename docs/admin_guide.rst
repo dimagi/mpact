@@ -261,7 +261,7 @@ left.
 In exported study data, messages flagged by any user are marked as
 flagged.
 
-/// KR: add info about unflagging using red X///
+.. KR: add info about unflagging using red X
 
 
 Exporting study data
