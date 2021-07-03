@@ -238,7 +238,7 @@ to directly message the bot if their data is to be linked to the relevant Study 
 Participants must message the bot prior to the upload, but the upload can be done
 more than once with no issues.
 
-/// KR: add info on how to access participants in admin interface. Can we only see participants in the admin interface if they've messaged the bot? ////
+.. KR: add info on how to access participants in admin interface. Can we only see participants in the admin interface if they've messaged the bot?
 
 Flagging messages
 -----------------
