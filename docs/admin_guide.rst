@@ -195,6 +195,20 @@ username and password:
 Click "Save", and then proceed to enter optional data about the user.
 
 
+Users and chats
+^^^^^^^^^^^^^^^
+
+The mPACT chat interface shows all the chats that the bot is involved
+in. Users do not "own" chat groups. Every user can see the same chats.
+And messages that users send to a chat group or to an individual will
+appear to other participants as having been sent by the bot.
+
+mPACT will keep track of unread messages for each user. For example, if
+Alice and Bob each have their own mPACT user account, messages that
+Alice reads will continue to appear to Bob as unread until Bob has read
+them.
+
+
 User permissions
 ^^^^^^^^^^^^^^^^
 
