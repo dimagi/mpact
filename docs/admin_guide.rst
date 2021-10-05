@@ -1,5 +1,36 @@
-The user interface
-------------------
+Some terminology
+----------------
+
+Before we dive in, it may help to lay out some terminology.
+
+Telegram user
+    Someone who uses Telegram to chat.
+
+mPACT user
+    (or simply "User" within the context of this mPACT documentation.)
+    Someone who is able to log into the mPACT software.
+
+Superuser
+    An mPACT user who has the authority to create mPACT user accounts
+    and to perform other administrative tasks.
+
+Chat group
+    A conversation via Telegram where messages are shared among all
+    members of a group of Telegram users.
+
+Individual chat
+    A conversation via Telegram where messages are only shared between
+    two Telegram users (also known as DM, direct messaging, or
+    one-to-one).
+
+Bot
+    A Telegram user that is software, not a human. mPACT uses a bot to
+    send messages to Telegram from mPACT users, and to show mPACT users
+    the messages from other Telegram users.
+
+
+Introducing the user interface
+------------------------------
 
 The first time the superuser logs in, they will see an empty user
 interface:
@@ -9,7 +40,8 @@ interface:
 
 You can mouse over the icons in the top left to see what each one does.
 
-A good place to start is to create a new chat group, which is handled by Telegram and not the mPACT application.
+A good place to start is to create a new chat group, which is handled by
+Telegram and not the mPACT application.
 
 
 Creating a new chat group
@@ -22,8 +54,10 @@ Creating a new chat group
 #. Give your new group a name, and press the check mark to create the
    group.
 #. Press the group name to see its members.
-#. Long-press on the bot and select "Promote to Admin", or press the edit button for the group, select Administrators, and add the bot as an admin. Otherwise the
-   bot will be unable to see any messages from other members.
+#. Long-press on the bot and select "Promote to Admin", or press the
+   edit button for the group, select Administrators, and add the bot as
+   an admin. Otherwise the bot will be unable to see any messages from
+   other members.
    .. KR: should this still be included?
 
 The bot will be notified of its new group, and the group will be added
@@ -41,17 +75,54 @@ the group will appear in the left panel.
    :alt: New group
 
 
+Introducing the admin interface
+-------------------------------
+
+mPACT has a second interface, the admin interface, which gives
+superusers direct access to data. Normal users are not given a link to
+the admin interface. Superusers will need to navigate to it manually, by
+changing their browser's URL to ".../admin/". For example, if you are
+using the environment on Heroku, the URL will start with
+"http://mpact-demo.herokuapp.com/chat". Change that to
+"http://mpact-demo.herokuapp.com/admin/" and log in as the superuser.
+
+.. image:: img/04_admin_interface.png
+   :alt: Admin interface
+
+
 Scheduling
 ----------
 
-Group chats are associated with a set of `ScheduledMessage` objects,
-which represent the schedule of messages to go out.
+mPACT can send messages to a chat group on a schedule. These scheduled
+messages can be defined in Excel and uploaded to mPACT.
 
-The actual sending of messages is managed via `django-celery-beat`_.
+Chat groups have a "schedule start date" and a "schedule start time".
+Each scheduled message is sent a given number of days after the chat
+group's schedule start date. That number of days is specified in the
+spreadsheet for each message. The messages are sent at the start time.
 
-When schedules are uploaded, once-off `PeriodicTask` objects are created
-for each row in the schedule. These will call `tasks.send_msgs` with the
-appropriate arguments for the chat.
+An example can help to illustrate when a scheduled message will be sent:
+Imagine the "FansOfTen" chat group, who are sent messages at 10 AM
+starting on December 10. (They chose December because although it is the
+twelfth month, it is named for the number ten.) An administrator is late
+to upload the scheduled messages, and uploads them at 11 AM on December
+10.
+
+The first message has a day number of 0. It was intended to be sent at
+10 AM on December 10. But because the spreadsheet was uploaded an hour
+after the first message was supposed to be sent, will the first message
+be sent immediately at 11 AM on December 10, or at 10AM the next day on
+December 11, or will it be skipped?
+
+It will be skipped. To avoid accidentally sending or resending messages
+that were scheduled to be sent in the past, all past message schedules
+are skipped.
+
+`django-celery-beat`_ is the library that manages the sending of
+scheduled messages. When schedules are uploaded, once-off
+``PeriodicTask`` objects are created for each row in the schedule. These
+will call ``tasks.send_msgs`` with the appropriate arguments for the
+chat.
 
 
 Creating schedules
@@ -63,9 +134,11 @@ it in your spreadsheet application.
 You will see that the sheet has three columns, "Days", "Message" and
 "Comment".
 
-"Days" is the interval, in days, from the creation of the chat group, at
-which the message will be sent. e.g. A value of "1" means that the
-message will be sent on the first day.
+"Days" is the interval after which the message will be sent, in days,
+from the chat group's "schedule start date". The schedule start date
+defaults to the date the chat group was created. e.g. If a chat group's
+schedule start date is 10 December, a "Days" value of "1" means that the
+message will be sent on 11 December.
 
 "Message" is the message that will be sent.
 
@@ -95,19 +168,10 @@ All previous scheduled messages are disabled when a new schedule is
 uploaded.
 
 
-The admin interface
-^^^^^^^^^^^^^^^^^^^
+Schedules in the admin interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-mPACT has a second interface, the admin interface, which gives
-superusers direct access to data. Normal users are not given a link to
-the admin interface. Superusers will need to navigate to it manually, by
-changing their browser's URL to ".../admin/". For example, if you are
-using the environment on Heroku, the URL will start with
-"http://mpact-demo.herokuapp.com/chat". Change that to
-"http://mpact-demo.herokuapp.com/admin/" and log in as the superuser.
-
-.. image:: img/04_admin_interface.png
-   :alt: Admin interface
+Navigate to the admin interface.
 
 Choose "Scheduled messages" under "MPACT".
 
@@ -160,6 +224,20 @@ username and password:
    :alt: Add user
 
 Click "Save", and then proceed to enter optional data about the user.
+
+
+Users and chats
+^^^^^^^^^^^^^^^
+
+The mPACT chat interface shows all the chats that the bot is involved
+in. Users do not "own" chat groups. Every user can see the same chats.
+And messages that users send to a chat group or to an individual will
+appear to other participants as having been sent by the bot.
+
+mPACT will keep track of unread messages for each user. For example, if
+Alice and Bob each have their own mPACT user account, messages that
+Alice reads will continue to appear to Bob as unread until Bob has read
+them.
 
 
 User permissions
