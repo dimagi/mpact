@@ -1,3 +1,34 @@
+Some terminology
+----------------
+
+Before we dive in, it may help to lay out some terminology.
+
+Telegram user
+    Someone who uses Telegram to chat.
+
+mPACT user
+    (or simply "User" within the context of this mPACT documentation.)
+    Someone who is able to log into the mPACT software.
+
+Superuser
+    An mPACT user who has the authority to create mPACT user accounts
+    and to perform other administrative tasks.
+
+Chat group
+    A conversation via Telegram where messages are shared among all
+    members of a group of Telegram users.
+
+Individual chat
+    A conversation via Telegram where messages are only shared between
+    two Telegram users (also known as DM, direct messaging, or
+    one-to-one).
+
+Bot
+    A Telegram user that is software, not a human. mPACT uses a bot to
+    send messages to Telegram from mPACT users, and to show mPACT users
+    the messages from other Telegram users.
+
+
 Introducing the user interface
 ------------------------------
 
