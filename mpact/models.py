@@ -3,12 +3,24 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.conf import settings
 
 def validate_phone(username):
     if username[0] != "+":
         raise ValidationError("Phone number should start with '+'.")
     return username
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def set_unread_count_on_user_creation(sender, instance=None, created=False, **kwargs):
+    """
+    When we create a new web user, we need to create zero-ed out unread counts 
+    for each of the chats so that they show up properly for the new user
+    """
+    if created:
+        for room_id in UserChatUnread.objects.values_list('room_id', flat=True).distinct():
+            UserChatUnread.objects.create(user_id=instance.id,room_id=room_id,unread_count=0)
 
 
 class BaseModel(models.Model):
