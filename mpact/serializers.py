@@ -16,7 +16,7 @@ from .models import (
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
         model = IndividualChat
-        fields = ["id", "username", "first_name", "last_name", "messages_count"]
+        fields = ["id", "username", "first_name", "last_name", "study_id", "messages_count"]
 
 
 class BotIndividualSerializer(serializers.ModelSerializer):
