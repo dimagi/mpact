@@ -65,6 +65,7 @@ export default {
       roomId: '',
       currentUserId: 1,
       groupAndIndividualChats: [],
+      userDetails: {},  // Map userID to a small user object with study ID etc for use in display
       messagesLoaded: false,
       roomsLoaded: false,
       roomName: '',
@@ -186,7 +187,8 @@ export default {
         // three users, we are forcing the library to always show sender / usernames 
         // with messages. We aren't passing a real list of users because we are
         // not currently using any of the functionality.
-        const userMap = {}
+        let userMap = {}
+        let groupMap = {}
         const fakeUsers = [
           {_id:1,username:"fake1"},
           {_id:2,username:"fake2"},
@@ -200,24 +202,50 @@ export default {
           type: 'flagged-msgs',
           users: fakeUsers,
         }];
+
+        // This doesn't really belong here.
+        // https://www.codegrepper.com/code-examples/javascript/how+to+sort+a+hash+key+map+alphabetically+javascript
+        function sortObjectByKeys(o) {
+          return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+        }
+
         this.groupAndIndividualChats.forEach((d) =>{
-          formattedRoomStructure.push({
+          groupMap[d.chat['title'] + d.chat['id'].toString()] = {
             roomId: d.chat['id'].toString(),
             roomName: d.chat['title'],
             unreadCount: d.chat['unread_count'],
             type: 'group-chat',
             botId: d.bot['id'],
-            users: fakeUsers});
+            users: fakeUsers};
           d.bot.bot_individuals.forEach((i) =>{
-            userMap[i.individual.id] ={
+            let displayName = this._generateDisplayName(i.individual);
+            // Make the key the display name so it is easy to alphabatize later.
+            // Append the individual ID to avoid collisions.
+            userMap[displayName+i.individual.id,toString()] ={
               roomId: i.individual.id.toString(),
-              roomName: i.individual.first_name,
+              roomName: displayName,
               type: 'individual-chat',
               botId: d.bot['id'],
               users: fakeUsers};
+            
+            // Save some details as well
+            this.userDetails[i.individual.id] = {
+              study_id: i.individual.study_id,
+              username: i.individual.username,
+              first_name: i.individual.first_name 
+            }
           });
         });
+
+        // Alphabatize and add group chats first
+        groupMap = sortObjectByKeys(groupMap);
+        for(let key in groupMap) {
+          formattedRoomStructure.push(groupMap[key]);
+        }
+
         // Even if a user is in multiple group chats, put 'em in the room list once.
+        // Alphatize and add individual chats after all group chats
+        userMap = sortObjectByKeys(userMap);
         for(let key in userMap) {
           formattedRoomStructure.push(userMap[key]);
         }
@@ -316,9 +344,22 @@ export default {
       });
       return formattedMessages;
     },
+    _generateDisplayName(user) {
+      let displayName = user.study_id ? user.study_id + ": " : "";
+      displayName += user.username ? user.username : user.first_name;
+      return displayName;
+    },
     _processMessages(messages) {
       const formattedMessages = [];
       messages.forEach((m) => {
+        const user = this.userDetails[m.sender_id];
+        let displayName = m.sender_name;
+        if(user){
+          displayName = this._generateDisplayName(user);
+          displayName += ' ['+m.sender_name+']';
+        } else {
+          console.log('nothing found for '+m.sender_id)
+        }
         formattedMessages.push({
           _id: m.id || '',
           messageId: m.message.id || '',
@@ -326,7 +367,7 @@ export default {
           senderId: m.sender_id || '',
           date: dateHelpers.convertDate(m.date),
           timestamp: dateHelpers.convertTime(m.date),
-          username: m.sender_name, 
+          username: displayName, 
           isFlagged: m.is_flagged,
           roomId: this.roomId,
           seen: true
