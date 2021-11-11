@@ -221,7 +221,7 @@ export default {
             let displayName = i.individual.study_id ? i.individual.study_id + ": " : "";
             displayName += i.individual.username ? i.individual.username : i.individual.first_name;
             // Make the key the display name so it is easy to alphabatize later.
-            // Append the individual ID to avoid conclusions.
+            // Append the individual ID to avoid collisions.
             userMap[displayName+i.individual.id,toString()] ={
               roomId: i.individual.id.toString(),
               roomName: displayName,
