@@ -218,8 +218,7 @@ export default {
             botId: d.bot['id'],
             users: fakeUsers};
           d.bot.bot_individuals.forEach((i) =>{
-            let displayName = i.individual.study_id ? i.individual.study_id + ": " : "";
-            displayName += i.individual.username ? i.individual.username : i.individual.first_name;
+            let displayName = this._generateDisplayName(i.individual);
             // Make the key the display name so it is easy to alphabatize later.
             // Append the individual ID to avoid collisions.
             userMap[displayName+i.individual.id,toString()] ={
@@ -345,14 +344,18 @@ export default {
       });
       return formattedMessages;
     },
+    _generateDisplayName(user) {
+      let displayName = user.study_id ? user.study_id + ": " : "";
+      displayName += user.username ? user.username : user.first_name;
+      return displayName;
+    },
     _processMessages(messages) {
       const formattedMessages = [];
       messages.forEach((m) => {
         const user = this.userDetails[m.sender_id];
-        let displayName = m.sender_name+'abc';
+        let displayName = m.sender_name;
         if(user){
-          displayName = user.study_id ? user.study_id + ": " : "";
-          displayName += user.username ? user.username : user.first_name;
+          displayName = this._generateDisplayName(user);
           displayName += ' ['+m.sender_name+']';
         } else {
           console.log('nothing found for '+m.sender_id)
