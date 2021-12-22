@@ -146,7 +146,7 @@ class ScheduleMessages(APIView):
         for group in GroupChat.objects.all():
             sheet = tablib.Dataset(headers=headers)
             # excel limits titles to 32 characters: https://github.com/dimagi/mpact/issues/34
-            sheet.title = f"{group.title[:22]}|{group.id}"
+            sheet.title = f"{group.title[:21]}|{group.id}"
             for message in group.scheduled_messages.filter(enabled=True):
                 sheet.append((message.day, message.message, message.comment))
             databook.add_sheet(sheet)
